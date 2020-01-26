@@ -1,0 +1,81 @@
+html,body {
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    padding: 0px;
+    position: fixed;
+    overflow: hidden;
+    width:100%;
+    height:100%;
+}
+
+@media(min-width: 40rem){
+
+}
+
+.design_plan_container{
+    position: absolute;
+    height:calc(100% - 100px);
+    width:100%;
+    overflow: hidden; 
+    touch-action: none;
+}
+
+.map_image_plane{
+  height:100%;
+  touch-action: none;
+}
+
+.map_image{
+    height:100%;    
+}
+
+.main_menu{
+    position: absolute;
+    bottom:0px;
+    height:100px;
+    width: 100%;
+    border-top: solid 1px rgb(197, 196, 196);
+    background-color: rgb(255, 255, 255);
+    /* box-shadow: 2px 0px 2px black; */
+}
+
+.main_menu_list{
+    padding:0;
+    width: 100%;
+    list-style: none;   
+    padding-top:20px; 
+    margin:0;
+}
+
+.main_menu_list_item{
+    
+    display: inline-block;
+    width:25%;
+    height: 100%;
+    text-align: center;
+}
+
+.main_menu_list_item_image{    
+    width: 40px;
+    height: 40px;
+    border: 2px solid #424242;
+    border-radius: 50%;
+    margin: auto; 
+}
+
+.main_menu_list_item_description{
+    font-size: 0.7em;
+}
+
+
+
+
+
+
+.test_point{
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: red;
+}
