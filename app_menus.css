@@ -1,7 +1,4 @@
-#main_menu{
-    
-    /* box-shadow: 2px 0px 2px black; */
-}
+
 
 .main_menu_list{  
     position: absolute;
@@ -24,12 +21,14 @@
     width:25%;
     height: 100%;
     padding-top:20px; 
-    text-align: center;
+    text-align: center;    
 }
 
 
 .main_menu_list_item:hover{
-    background-color: rgb(160, 163, 173);
+    background-color: rgb(25, 42, 95);
+/* padding-top:0px; */
+    border-top: solid 1px rgb(160, 163, 173);
 }
 
 
@@ -67,7 +66,8 @@
     margin: auto;
     padding:0;
     padding-bottom: 20px; 
-    transition: bottom 1s;
+    
+    transition: bottom 0.7s;
 
 }
 
@@ -80,3 +80,6 @@
    
 }
 
+.main_menu_list_item_submenu_item:hover{
+    background-color: white;
+}

@@ -64,6 +64,31 @@ let menu1Items = {
                 'analog':2
             }
         }
+    },
+
+    'test' : {
+        'DOM_ID': 'main_menu_submenu_3', 
+        'items':{
+            'edit1': {
+                'camera': 1,
+                'dvr': 2,
+                'switch': 3
+            },
+            'edit2': {
+                'reader': 1,
+                'panel': 2,
+            },
+            'edit3': {
+                'motion': 1,
+                'door contact': 2,
+                'glass break': 3,
+                'panel': 4
+            },
+            'edit4': {
+                'ip': 1,
+                'analog':2
+            }
+        }
     }
         
 
@@ -77,6 +102,10 @@ function CreateAppMenus(){
         let menuItemObject = new appSubmenu(k, mainMenuItem['DOM_ID'])
         appMainMenu.addSubmenu(menuItemObject)
 
+        menuItemObject.itemsDOM.addEventListener('menuItemClicked', function(ev){
+            console.log('menuItemClicked: ' + ev.detail.menuName)
+        })
+
         for(let j in mainMenuItem['items']){
             let subMenuItem = menuItemObject['items'][j];
             let subMenuItemObject = new menuItem(j)
@@ -84,19 +113,7 @@ function CreateAppMenus(){
         }
         
     }
-
     return appMainMenu;
-
-
-   // let appSubMenu1 = new appSubmenu('insert', 'main_menu_list_item_1');
-   // let appSubMenu2 = new appSubmenu('edit', 'main_menu_list_item_2');
-    
-   // appMainMenu.addSubmenu(appSubMenu1);
-    //appMainMenu.addSubmenu(appSubMenu2);
-
-   // let menu1Submenus = {};
-
-   
 }
 
 function appMenu(name, DOM_ID){
@@ -139,39 +156,57 @@ function appSubmenu(name, DOM_ID){
     subMenuContainerDOM.id = this.name + '_main_menu_list_item_submenu';
     this.DOM.closest('section').appendChild(subMenuContainerDOM);
     this.itemsDOM = subMenuContainerDOM;
-    console.log('itemsDOM: ' + this.itemsDOM)
+    //console.log('itemsDOM: ' + this.itemsDOM)
     this.DOM.addEventListener('click', this.onClick)
+    
+    subMenuContainerDOM.addEventListener('click', processEvent)
+    // /subMenuContainerDOM.addEventListener('touchstart', processEvent)
+
+    function processEvent(ev){
+        console.log('processing event')
+        let event = new CustomEvent('menuItemClicked', {
+            detail:{
+                menuName: ev.target.parentNode.id
+            }
+        })
+        subMenuContainerDOM.dispatchEvent(event)
+    }
 }
 
 appSubmenu.prototype.addItem = function(item){
     this.items[item.DOM_ID] = item;
     this.itemsDOM.appendChild(item.DOM);
+
 }
 
 appSubmenu.prototype.onClick = function(ev){
-    let activeSubMenu = app.appMenus['bottom'].subMenus[this.id]; // 'this' here is a calling onClick object
-    let justHiddden = false;
-
-    if (activeSubMenu.parentMenu.activeSubMenu == activeSubMenu){
-        justHidden = true;
-        console.log('justHidden')
-    }
-
-    if(activeSubMenu.parentMenu.activeSubMenu){
-        activeSubMenu.parentMenu.activeSubMenu['itemsDOM'].style.bottom = '-100px'; // hide previous submenu
-        activeSubMenu.parentMenu.activeSubMenu.menuStatus = 'inactive'
-        activeSubMenu.parentMenu.activeSubMenu = null;
-    }
-
+    let newActiveSubMenu = app.appMenus['bottom'].subMenus[this.id]; // 'this' here is a calling onClick object
+    let previousActiveSubMenu = newActiveSubMenu.parentMenu.activeSubMenu;
     
+    let justHidden = false;
 
-    if (activeSubMenu.menuStatus == 'active'){ //if the menu is currently active
-        activeSubMenu['itemsDOM'].style.bottom = -100 + 'px' // hide it
-        activeSubMenu.menuStatus = 'inactive';
-    } else if (!justHiddden){ // if this menu is not active
-        activeSubMenu['itemsDOM'].style.bottom = 100 + 'px' // show current submenu
-        activeSubMenu.parentMenu.activeSubMenu = activeSubMenu; // save curent submenu as active
-        activeSubMenu.menuStatus = 'active'
+    console.log(previousActiveSubMenu)    
+
+    if(previousActiveSubMenu){
+        if (previousActiveSubMenu == newActiveSubMenu ){
+            justHidden = true;
+            console.log('justHidden')
+        }
+        previousActiveSubMenu['itemsDOM'].style.bottom = '-100px'; // hide previous submenu
+        previousActiveSubMenu.menuStatus = 'inactive'
+        newActiveSubMenu.parentMenu.activeSubMenu = null;
+        console.log('hidden')
+    }    
+
+    if (newActiveSubMenu.menuStatus == 'active'){ //if the menu is currently active
+        newActiveSubMenu['itemsDOM'].style.bottom = -100 + 'px' // hide it
+        newActiveSubMenu.menuStatus = 'inactive';
+        newActiveSubMenu.parentMenu.activeSubMenu = null;
+        console.log('shown')
+    } else if(!justHidden){ // if this menu is not active nad was not just hidden
+        newActiveSubMenu['itemsDOM'].style.bottom = 100 + 'px' // show current submenu
+        newActiveSubMenu.parentMenu.activeSubMenu = newActiveSubMenu; // save curent submenu as active
+        newActiveSubMenu.menuStatus = 'active'
     }    
 }
 

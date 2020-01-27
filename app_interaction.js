@@ -10,6 +10,9 @@
 //     return false;
 // })
 
+let doubleTapWaitActive = false;
+let doubleTapWaitTime = 200;
+
 app.activeProject.activeDesignPlan.parentDOM.addEventListener('pointerdown', function(ev){
     let activeDesignPlan = app.activeProject.activeDesignPlan;
     activeDesignPlan.touchStartPointers[ev.pointerId] = ev;    
@@ -18,12 +21,6 @@ app.activeProject.activeDesignPlan.parentDOM.addEventListener('pointerdown', fun
     if(Object.keys(activeDesignPlan.touchStartPointers).length == 1){
         activeDesignPlan.activeTransformAction = 'translate';
         console.log('xtouch,ytouch = ' + parseInt(ev.clientX), parseInt(ev.clientY))
-
-        // var designPlanRect = activeDesignPlan.DOM.getBoundingClientRect();
-        // let originX = (ev.clientX-designPlanRect.x)/ (activeDesignPlan.transformValues.scale)// - this.transformValues.x//(x - designPlanRect.x)/(this.transformValues.scale);
-        // let originY = (ev.clientY-designPlanRect.y)/ (activeDesignPlan.transformValues.scale)// - this.transformValues.y//(y - designPlanRect.y)/(this.transformValues.scale);
-        // insertTestPoint(activeDesignPlan.DOM,originX,originY,'rgba(100,0,0,1)');
-
 
     } else if(Object.keys(activeDesignPlan.touchStartPointers).length == 2){
         console.log('two pointers started')
@@ -91,16 +88,19 @@ app.activeProject.activeDesignPlan.parentDOM.addEventListener('pointerleave', fu
 
 function pointerEndHandler(ev){
     let activeDesignPlan = app.activeProject.activeDesignPlan;
-    //console.dir(activeDesignPlan.touchStartPointers)
-    if(activeDesignPlan.activeTransformAction == 'translate'){ // one finger on map moving it
-        activeDesignPlan.saveTransformValues(activeDesignPlan.transformValues.x + ev.clientX - activeDesignPlan.touchStartPointers[ev.pointerId].clientX,
-                                             activeDesignPlan.transformValues.y + ev.clientY - activeDesignPlan.touchStartPointers[ev.pointerId].clientY,
-                                             '');
-    } else if(activeDesignPlan.activeTransformAction == 'scale'){ // two fingers zooming
-        activeDesignPlan.saveTransformValues(activeDesignPlan.moveXValueInProgress,
-                                             activeDesignPlan.moveYValueInProgress,
-                                             activeDesignPlan.scaleInProgress); // set end scale to the design plan object
+    //console.dir(ev)
+    if(activeDesignPlan.touchStartPointers[ev.pointerId]){
+        if(activeDesignPlan.activeTransformAction == 'translate'){ // one finger on map moving it
+            activeDesignPlan.saveTransformValues(activeDesignPlan.transformValues.x + ev.clientX - activeDesignPlan.touchStartPointers[ev.pointerId].clientX,
+                                                 activeDesignPlan.transformValues.y + ev.clientY - activeDesignPlan.touchStartPointers[ev.pointerId].clientY,
+                                                 '');
+        } else if(activeDesignPlan.activeTransformAction == 'scale'){ // two fingers zooming
+            activeDesignPlan.saveTransformValues(activeDesignPlan.moveXValueInProgress,
+                                                 activeDesignPlan.moveYValueInProgress,
+                                                 activeDesignPlan.scaleInProgress); // set end scale to the design plan object
+        }
+        delete activeDesignPlan.touchStartPointers[ev.pointerId]; // empty a touch event args array
     }
-    delete activeDesignPlan.touchStartPointers[ev.pointerId]; // empty a touch event args array
+    
     activeDesignPlan.activeTransformAction == '' // at least one finger was let go, cancel all transforms
 }
