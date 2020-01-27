@@ -5,10 +5,10 @@
 // }
 
 // prevent browser's context menu from showing on double tap and right click
-document.addEventListener('contextmenu', function(ev){
-    ev.preventDefault();
-    return false;
-})
+// document.addEventListener('contextmenu', function(ev){
+//     ev.preventDefault();
+//     return false;
+// })
 
 app.activeProject.activeDesignPlan.parentDOM.addEventListener('pointerdown', function(ev){
     let activeDesignPlan = app.activeProject.activeDesignPlan;

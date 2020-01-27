@@ -18,9 +18,15 @@ application.prototype.setCurrentUser = function(user){
     this.currentUser = user;
 }
 
+application.prototype.addAppMenu = function(menu){
+    this.appMenus[menu.name] = menu;
+}
+
 application.prototype.setActiveProject = function(project){
     this.activeProject = project;
 }
+
+
 
 function user(fName, lName, email, permissions) {
     this.fName = fName;
