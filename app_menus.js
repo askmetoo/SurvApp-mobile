@@ -66,7 +66,7 @@ let menu1Items = {
         }
     },
 
-    'test' : {
+    'layers' : {
         'DOM_ID': 'main_menu_submenu_3', 
         'items':{
             'edit1': {
