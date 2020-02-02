@@ -5,7 +5,7 @@ let userInstance = new user('Marcin', 'Heniorg', 'marcin@skynet4.com', new userP
 app.addUser(userInstance);
 app.setCurrentUser(userInstance)
 
-app.addAppMenu(CreateAppMenus());
+app.addAppMenu(CreateAppMenu1());
 
 
 let projectInstance = new project('firstTestProject');

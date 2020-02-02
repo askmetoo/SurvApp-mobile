@@ -7,3 +7,10 @@ function insertTestPoint(DOM,x,y,color){
     point.style.backgroundColor = color;
     DOM.appendChild(point)
 }
+
+function isObject(obj){
+    if(typeof obj === 'object' && obj !== null){
+        return true;
+    }
+    return false;
+}

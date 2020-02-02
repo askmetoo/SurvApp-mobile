@@ -4,6 +4,7 @@ function application(){
     this.activeProject = null;
     this.currentUser = null;
     this.appMenus = {};
+    this.appMessageDOM = document.getElementById("app_message");
 }
 
 application.prototype.addUser = function(user){
@@ -26,6 +27,15 @@ application.prototype.setActiveProject = function(project){
     this.activeProject = project;
 }
 
+application.prototype.setAppMessage = function(message){
+    this.appMessageDOM.innerHTML = message;
+    this.appMessageDOM.display = 'block';
+}
+
+application.prototype.clearAppMessage = function(){
+    this.appMessageDOM.innerHTML = '';
+    this.appMessageDOM.display = 'none';
+}
 
 
 function user(fName, lName, email, permissions) {
@@ -112,7 +122,6 @@ function designPlan(name, designPlanDOMID){
     this.touch2PointersInitialDistance = 0;   
 
     this.DOM.style.transformOrigin = 0 + 'px ' + 0 + 'px';
-
 }
 
 designPlan.prototype.loadMapImage = function(mapImage){
@@ -146,8 +155,8 @@ designPlan.prototype.saveTransformValues = function(x,y,scale){
 
 designPlan.prototype.addMapObject = function(mapObject){
     this.mapObjects[mapObject.ID] = mapObject; 
-    mapObject.addPopupMenu();
-    mapObject.addPopupMenuItems(['info', 'chat', 'status', 'pic', 'test']);   
+    //mapObject.addPopupMenu();
+    //mapObject.addPopupMenuItems(['info', 'chat', 'status', 'pic', 'test']);   
 }
 
 // insert element to the map objects list, render it on the page, remove it from the side bar
@@ -341,4 +350,188 @@ designPlan.prototype.removeMapObjectPopupMenu = function(){
              pane_DOM.removeChild(pane_DOM.firstChild);
          }
      }
+}
+
+
+
+function mapObject(ID, name, category, mapSymbol, type, locationRect, details, notes, status, onMap){
+    this.ID = ID; // for programming
+    this.name = name; // for the customer 
+    this.category = category; // video surveillance, alarm, access control, intercom, general etc.   
+    this.mapSymbol = mapSymbol; // for the map limited to 3 chars max
+    this.type = type; // camera, dvr, switch, door, motion etc.
+    this.details = details; //IP, ID, DIP etc
+    this.notes = notes; // any notes
+    this.chat = null; // for communication with team
+    this.status = status; // installed, not started, wired, cancelled etc
+    this.locationRect = locationRect; // location on the map in pixels
+    this.onMap = onMap; // determines if the object is on the map or side menu
+    this.DOM = null;  // reference to the DOM object
+    this.parentDesignPlan = null;
+    this.mouseClickOffsetX = 0; // delta X between mouse click and object x
+    this.mouseClickOffsetY = 0; // delta Y between mouse click and object y
+    this.translateX = 0;
+    this.translateY = 0;
+    this.scale = 1;
+    this.rotation = 0;
+    this.popup_menu ={}    
+}
+
+mapObject.prototype.setLocation = function(x,y){   
+    this.locationRect.top = y;
+    this.locationRect.left = x;
+}
+
+mapObject.prototype.getSizeLocation = function(){
+    return this.DOM.getBoundingClientRect();
+}
+
+mapObject.prototype.getTransformedXY = function(){ // gets position of the object after translation
+    var xy = {
+        x: this.locationRect.left,
+        y: this.locationRect.top
+    }
+    var style = this.DOM.style.getPropertyValue('transform') //returns i.e. translate(99px, 146px) scale(1) rotate(0deg)
+   
+    if(general_validation(style)){
+        var translate = style.match(/\(([^)]+)\)/); // regular expression that gets a value in 1st parenthesis - value of translate        
+        xy.x += parseInt(translate[1].split(',')[0]);
+        xy.y += parseInt(translate[1].split(',')[1])
+    }
+   return xy;
+}
+
+mapObject.prototype.lift = function(ID){
+    this.DOM.classList.add('map_object_lifted');
+}
+
+mapObject.prototype.calcMouseClickOffset = function(clientX, clientY){ // for moving object on the map with mouse - calculates difference between mouse click location and object location
+    
+    var cssTransformedXY = this.getTransformedXY();
+    var designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
+    
+    this.mouseClickOffsetX = Math.floor((clientX - designPlanRect.x)/this.parentDesignPlan.scale - cssTransformedXY.x)
+    this.mouseClickOffsetY = Math.floor((clientY - designPlanRect.y)/this.parentDesignPlan.scale - cssTransformedXY.y)
+    
+}
+
+mapObject.prototype.moveOnMap = function(clientX, clientY){
+    var designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
+    this.translateX = Math.floor(((clientX - designPlanRect.x)/ this.parentDesignPlan.scale - this.locationRect.left - this.mouseClickOffsetX) );
+    this.translateY = Math.floor(((clientY - designPlanRect.y)/this.parentDesignPlan.scale - this.locationRect.top - this.mouseClickOffsetY) );
+    
+    this.applyTansform();
+}
+
+mapObject.prototype.resizeElement = function(clientX, clientY){
+    //console.log('trying resizing')
+    var elementToTransform = this.parentDesignPlan.elementToTransform;
+    var objectToResizeRect = this.DOM.getBoundingClientRect();
+    //console.log('resizing id: ' + objectToResize.ID)
+    var transform_origin = '';
+    var scaleX = this.scale.x;
+    var scaleY = this.scale.y;
+    var xm = 0; // distance between the click and the corresponding resize node 
+    var ym = 0;
+
+    switch (elementToTransform.direction){
+        case "top_left":
+            transform_origin = "right bottom"
+            break;
+
+        case "top_right":
+            transform_origin = "left bottom"
+            break;
+        
+        case "bottom_right":
+            transform_origin = "left top"
+            break;
+
+        case "bottom_left":
+                transform_origin = "right top"
+                break;
+    }
+
+    transform_origin = "center"
+    xm = clientX - elementToTransform.starting_X;
+    ym = clientY - elementToTransform.starting_Y;
+    scaleX = xm / elementToTransform.starting_width;
+    scaleY = ym / elementToTransform.starting_height;
+    var scale = Math.max(scaleX, scaleY);
+    scale += elementToTransform.starting_scale;
+    if(scale>4) scale = 4;
+    if(scale<0.3) scale = 0.3;
+    
+    this.scale = scale;
+   
+    this.DOM.style.transformOrigin = transform_origin;
+    this.applyTansform();
+    //console.log(' by scale of ' + scale)
+}
+
+mapObject.prototype.rotateElement = function(clientX, clientY){
+    var designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
+    var cssTransformedXY = this.getTransformedXY();
+
+    var center_x = cssTransformedXY.x + this.locationRect.width / 2;
+    var center_y = cssTransformedXY.y + this.locationRect.height / 2;
+    var mouse_x = (clientX - designPlanRect.x)/ this.parentDesignPlan.scale;
+    var mouse_y = (clientY - designPlanRect.y)/ this.parentDesignPlan.scale;
+
+
+    var radians = Math.atan2( mouse_y - center_y, mouse_x - center_x);
+    this.rotation = radians * ((180 / Math.PI) * 1)+45; // degrees
+    // console.log('radians = ' + radians);
+    var degree = 0// (radians * (180 / Math.PI) * 1) + 90;// - mapObject.rotation;
+    console.log('this.rotate = ' + this.rotation);
+    this.applyTansform();
+}
+
+mapObject.prototype.bringOnTop = function(){
+    var mapObjects = this.parentDesignPlan.mapObjects;
+    for(let k in mapObjects){
+        mapObjects[k].DOM.style.zIndex = 1;
+    }
+    this.DOM.style.zIndex = 10;
+}
+
+mapObject.prototype.applyTansform = function(){
+    //console.log(`translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale}) rotate(${this.rotation}deg)`)
+    this.DOM.style.transform = `translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale}) rotate(${this.rotation}deg)`;
+}
+
+mapObject.prototype.addPopupMenu = function(){
+    this.popup_menu = new app_pane('map_object_popup_menu', 'map_object_popup_menu'); // (name, DOM_ID)
+    this.popup_menu.callingElement = this;
+}
+
+mapObject.prototype.addPopupMenuItem = function(name){
+    var menuItem = this.popup_menu.add_item(new app_pane_general_item(this.ID + '__popup_menu__' + name, name)); // (ID, name)
+    
+}
+
+mapObject.prototype.addPopupMenuItems = function(names){
+    for(var i=0;i<names.length;i++){
+        this.addPopupMenuItem(names[i]);
+    }    
+}
+
+mapObject.prototype.addPopupMenuSubmenuItem = function(name, submenu_item_name){
+    this.popup_menu[name] = {};
+    this.popup_menu[name][submenu_item_name] = new app_pane_general_item(this.name + '_popup_menu_' + name)
+}
+
+mapObject.prototype.popupMenuShow = function(){
+    this.popup_menu.RENDER();
+    app.activeProject.activeDesignPlan.mapObjectPopupMenu = this.popup_menu;
+}
+
+mapObject.prototype.popupMenuRemove = function(){
+    if(app.activeProject.activeDesignPlan.mapObjectPopupMenu!=null){
+       var pane_DOM =  app.activeProject.activeDesignPlan.mapObjectPopupMenu.pane_DOM;
+        while (pane_DOM.firstChild) {
+            pane_DOM.removeChild(pane_DOM.firstChild);
+        }
+    }
+   
 }

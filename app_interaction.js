@@ -5,21 +5,21 @@
 // })
 
 document.addEventListener('singleTap', function(ev){
-    console.log('document - singleTap, ev: ' + ev);
+    //console.log('document - singleTap, ev: ' + ev);
     //console.log(ev);
 })
 
 document.addEventListener('doubleTap', function(ev){
-    console.log('doubleTap, ev: ' + ev);
-    //console.log(ev);
-
-    if(ev.detail.eventData.target == app.activeProject.activeDesignPlan.parentDOM){
-        console.log('design plan - single tap');
-    }
+    //console.log('document - dualTap, ev: ' + ev);
 })
 
 app.activeProject.activeDesignPlan.parentDOM.addEventListener('singleTap', function(ev){
-    console.log('design plan - single tap');
+    //console.log('design plan - single tap');
+    if (app.appMenus['bottom menu'].activeMenuItem){
+        console.log('inserting')
+        let mapObjectInstance = new mapObject()
+        app.activeProject.activeDesignPlan.insertElementToTheMap(new mapObject(parseInt(Math.random()*9999)), ev.detail.clientX, ev.detail.clientY)
+    }
 })
 
 let quickTapWaitFlag = false;
@@ -46,7 +46,7 @@ app.activeProject.activeDesignPlan.parentDOM.addEventListener('pointerdown', fun
 })
 
 function tappedAndHeld(){ // finger was tapped and held for at least tapsInterval
-
+    let activeDesignPlan = app.activeProject.activeDesignPlan;
     quickTapWaitFlag = false;  // turn off the flag that 
     tapCounter = 0; // set tap counter to 0 - if any of the taps was held it means that it is not multi tap event
     console.log('tapped and held')
@@ -140,7 +140,7 @@ function pointerEndHandler(ev){
         else if (tapCounter == 2){
             clearTimeout(singleTapFunction)
             doubleTapFunction = setTimeout (function(){doubleTap(ev)}, tapsInterval);            
-        } else {
+        } else if (tapCounter != 0){
             clearTimeout(doubleTapFunction)
             console.log('more than two tap');
         }
