@@ -1,0 +1,22 @@
+.map_object_icon {
+    position: absolute;
+}
+
+.map_object_icon_default{
+    position: absolute;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border: 1px solid black;
+    border-radius: 50%;
+    z-index: 2;
+}
+
+.map_object_icon_default>h2{
+    position: relative;
+    margin:0;
+    padding:0 5px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+}

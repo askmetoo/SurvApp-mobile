@@ -13,7 +13,7 @@
     list-style: none;   
     
     margin:0;
-    z-index: 2;
+    z-index: 10;
 }
 
 .bottom_menu_list > li{    
@@ -22,6 +22,7 @@
     height: 100%;
     padding-top:20px; 
     text-align: center;    
+    z-index: inherit;
 }
 
 
@@ -44,6 +45,7 @@
     border-radius: 50%;
     background-color: white;
     margin: auto; 
+    z-index: inherit;
 }
 
 .menu_list_item_description{
@@ -73,6 +75,7 @@
     padding:0;
     padding-bottom: 20px;     
     transition: bottom 0.7s;
+    z-index: 6;
 }
 
 .bottom_menu_list_item_submenu_visible{

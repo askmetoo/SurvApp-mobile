@@ -14,11 +14,21 @@ document.addEventListener('doubleTap', function(ev){
 })
 
 app.activeProject.activeDesignPlan.parentDOM.addEventListener('singleTap', function(ev){
-    //console.log('design plan - single tap');
     if (app.appMenus['bottom menu'].activeMenuItem){
-        console.log('inserting')
-        let mapObjectInstance = new mapObject()
-        app.activeProject.activeDesignPlan.insertElementToTheMap(new mapObject(parseInt(Math.random()*9999)), ev.detail.clientX, ev.detail.clientY)
+        let objectType = app.appMenus['bottom menu'].clickedPath.split('/').slice(-2)[0];
+        let objectSubType = app.appMenus['bottom menu'].activeMenuItem.name;
+        let mapObjectInstance = new mapObject();
+        mapObjectInstance.setParentDesignPlan(app.activeProject.activeDesignPlan);
+        mapObjectInstance.setTypeAndSubType(objectType, objectSubType);  // i.e. surveillance, camera
+        mapObjectInstance.generateID();
+        mapObjectInstance.setName(); // gets name from the ID, name = subType + following number of this subType which is already on the design plan
+        mapObjectInstance.assignToLayer();
+        mapObjectInstance.insertToDesignPlan(ev.detail.eventData.pageX, ev.detail.eventData.pageY)
+        mapObjectInstance.setClick_TapListener();
+        mapObjectInstance.setMoveListener();
+        //console.log(ev)
+
+        //app.activeProject.activeDesignPlan.insertElementToTheMap(new mapObject(parseInt(Math.random()*9999)), ev.detail.clientX, ev.detail.clientY)
     }
 })
 

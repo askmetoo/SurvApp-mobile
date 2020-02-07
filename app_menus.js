@@ -144,22 +144,28 @@ function appMenu(menuJSON){
     this.activeTopSubmenuItem = null; // for highlighting the bottom menu choice
     this.activeSubmenu = null; // for showing/hiding submenu card
     this.activeMenuItem = null; // what 'end' item is active
+    this.clickedPath = '';
 }
 
 appMenu.prototype.addSubmenu = function(){
     this.subMenu = new subMenu(this, this.menuJSON.items, this.DOM);
 }
 
-appMenu.prototype.setactiveTopSubmenuItem = function(subMenu){
+appMenu.prototype.setActiveTopSubmenuItem = function(subMenu){
     this.activeTopSubmenuItem = subMenu;    
     this.activeTopSubmenuItem.DOM.classList.add('bottom_menu_list_active_item')
 }
 
-appMenu.prototype.unsetactiveTopSubmenuItem = function(){  
+appMenu.prototype.unsetActiveTopSubmenuItem = function(){  
     if(this.activeTopSubmenuItem){
         this.activeTopSubmenuItem.DOM.classList.remove('bottom_menu_list_active_item')
         this.activeTopSubmenuItem = null;
-    }          
+        this.clickedPath = '';
+    }     
+    
+    if(this.activeMenuItem){
+        this.unsetActiveMenuItem();
+    }
 }
 
 appMenu.prototype.setActiveMenuItem = function(item){
@@ -246,6 +252,8 @@ subMenu.prototype.showMenu = function(){
     this.topParent.activeSubmenu = this;
     this.DOM.classList.add(this.class + '_visible');
     this.visible = true;
+
+    this.topParent.clickedPath += '/' + this.parent.name;
     
 } 
     
@@ -253,7 +261,7 @@ subMenu.prototype.showMenu = function(){
 subMenu.prototype.hideMenu = function(){
     //console.log('hiding menu');
 //    this.DOM.style.bottom = '100px'
-    this.DOM.classList.remove(this.class + '_visible');
+    this.DOM.classList.remove(this.class + '_visible');    
     this.visible = false;
 }
 
@@ -273,21 +281,33 @@ function menuItem(parent, name, itemJSON){
     this.DOM.addEventListener('touchstart',  function(){
         
         if(this.parent.parent === this.topParent){// check if this subMenu is the top subMenu - the bottom bar
-            this.topParent.unsetactiveTopSubmenuItem();
-            this.topParent.setactiveTopSubmenuItem(this);
+            this.topParent.unsetActiveTopSubmenuItem();
+            this.topParent.setActiveTopSubmenuItem(this);
             //this.DOM.classList.add('bottom_menu_list_active_item')
         }
     
 
         if(this.subMenu){
-            if (this.subMenu.visible){
-                this.subMenu.hideMenu();
-            } else {
-                this.subMenu.showMenu();
+            // if (this.subMenu.visible){
+            //     this.topParent.clickedPath = '';
+            //     this.subMenu.hideMenu();
+            // } else {
+            
+            this.subMenu.showMenu(); // hides previously shown menu
+            //}
+        } else { // if the clicked element doesnt have a subMenu this means it is an 'end' item           
+            if(this.topParent.activeMenuItem){ // if there is an active item already
+                let newPath = this.topParent.clickedPath.split('/') 
+                newPath.pop(); // remove it's name from the path
+                newPath = newPath.join('/');
+                newPath += '/' + this.name;  // and add this item's name
+                this.topParent.clickedPath = newPath;
+            } else { // if there is no active item 
+                this.topParent.clickedPath += '/' + this.name; // then just add the name to the path
             }
-        } else { // if the clicked element doesnt have a subMenu this means it i an 'end' item
             this.topParent.setActiveMenuItem(this)
             app.setAppMessage(this.topParent.activeTopSubmenuItem.name + ': ' + this.name)
+            
             //console.log(this.DOM_ID.split('__')[0]);
         }
         
@@ -322,109 +342,4 @@ menuItem.prototype.createDOM = function(){
 
     return DOM;
 }
-
-// appMenu.prototype.addSubmenu = function(submenu){
-//     this.subMenus[submenu.DOM_ID] = submenu;
-//     this.subMenus[submenu.DOM_ID].parentMenu = this;
-// }
-
-// function appSubmenu(name, DOM_ID){
-//     this.parentMenu = null;
-//     this.name = name;
-//     this.DOM_ID = DOM_ID; //unique identifier of this menu
-//     this.DOM = document.getElementById(this.DOM_ID);
-//     this.itemsDOM = null;
-//     this.items = {};
-//     this.subMenu = null;
-//     this.menuStatus = 'inactive'; // if menu button clicked/tapped and menu shows this will be set to 'active'
-
-    
-//     let icon = this.DOM.querySelector('div') // div inside the menu is the icon
-//     icon.innerHTML = '<h2>' + this.name[0].toUpperCase() + '</h2>';
-
-//     let text = this.DOM.querySelector('p');
-//     text.innerHTML = this.name;
-
-//     let subMenuContainerDOM = document.createElement('ul'); // all items are going to be here
-//     subMenuContainerDOM.classList.add('bottom_menu_list_item_submenu');
-//     subMenuContainerDOM.id = this.name + '_bottom_menu_list_item_submenu';
-//     this.DOM.closest('section').appendChild(subMenuContainerDOM);
-//     this.itemsDOM = subMenuContainerDOM;
-//     //console.log('itemsDOM: ' + this.itemsDOM)
-//     this.DOM.addEventListener('click', this.onClick)
-    
-//     subMenuContainerDOM.addEventListener('click', processEvent)
-//     // /subMenuContainerDOM.addEventListener('touchstart', processEvent)
-
-//     function processEvent(ev){
-//         console.log('processing event')
-//         let event = new CustomEvent('menuItemClicked', {
-//             detail:{
-//                 menuName: ev.target.parentNode.id
-//             }
-//         })
-//         subMenuContainerDOM.dispatchEvent(event)
-//     }
-// }
-
-// appSubmenu.prototype.addItem = function(item){
-//     this.items[item.DOM_ID] = item;
-//     this.itemsDOM.appendChild(item.DOM);
-
-// }
-
-// appSubmenu.prototype.onClick = function(ev){
-//     let newActiveSubMenu = app.appMenus['bottom'].subMenus[this.id]; // 'this' here is a calling onClick object
-//     let previousActiveSubMenu = newActiveSubMenu.parentMenu.activeSubMenu;
-    
-//     let justHidden = false;
-
-//     console.log(previousActiveSubMenu)    
-
-//     if(previousActiveSubMenu){
-//         if (previousActiveSubMenu == newActiveSubMenu ){
-//             justHidden = true;
-//             console.log('justHidden')
-//         }
-//         previousActiveSubMenu['itemsDOM'].style.bottom = '-100px'; // hide previous submenu
-//         previousActiveSubMenu.menuStatus = 'inactive'
-//         newActiveSubMenu.parentMenu.activeSubMenu = null;
-//         console.log('hidden')
-//     }    
-
-//     if (newActiveSubMenu.menuStatus == 'active'){ //if the menu is currently active
-//         newActiveSubMenu['itemsDOM'].style.bottom = -100 + 'px' // hide it
-//         newActiveSubMenu.menuStatus = 'inactive';
-//         newActiveSubMenu.parentMenu.activeSubMenu = null;
-//         console.log('shown')
-//     } else if(!justHidden){ // if this menu is not active nad was not just hidden
-//         newActiveSubMenu['itemsDOM'].style.bottom = 100 + 'px' // show current submenu
-//         newActiveSubMenu.parentMenu.activeSubMenu = newActiveSubMenu; // save curent submenu as active
-//         newActiveSubMenu.menuStatus = 'active'
-//     }    
-// }
-
-// function menuItem(name){
-//     this.name = name;
-//     this.DOM_ID = name + "_bottom_menu_list_item_submenu_item";
-//     this.DOM = null;
-//     this.toolTip = '';
-//     this.action = {};  // saves function of the menu activation i.e. insertObject()
-//     this.status = 'insert';  // to keep track of the status - 'insert' - single insert of the object, 'insert mode' - double tap inserts until turned off
-
-//     this.DOM = document.createElement('li');
-//     this.DOM.classList.add('bottom_menu_list_item_submenu_item');
-//     this.DOM.id = this.DOM_ID;
-
-//     let imageDiv = document.createElement('div');
-//     imageDiv.classList.add('menu_list_item_image');
-//     this.DOM.appendChild(imageDiv);
-
-//     let descriptionP = document.createElement('div');
-//     descriptionP.classList.add('menu_list_item_description');
-//     descriptionP.innerHTML = this.name;
-//     this.DOM.appendChild(descriptionP);
-
-// }
-
 

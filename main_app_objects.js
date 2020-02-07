@@ -13,6 +13,7 @@ application.prototype.addUser = function(user){
 
 application.prototype.addProject = function(project){
     this.projects[project.name] = project;
+    project.setParentApp(this);
 }
 
 application.prototype.setCurrentUser = function(user){
@@ -70,13 +71,17 @@ user.prototype.setPermission = function(permission, value){
 }
 
 function project(name, createdBy = 'auto', cretedDate = new Date()){
-    this.app = null;
+    this.parentApp = null;
     this.name = name;
     this.designPlans = {};
     this.activeDesignPlan = null;
     this.createdBy = createdBy;
     this.createdDate = cretedDate;
     this.customer = null;
+}
+
+project.prototype.setParentApp = function(app){
+    this.parentApp = app;
 }
 
 project.prototype.addDesignPlan = function(designPlan){
@@ -89,6 +94,10 @@ project.prototype.setActiveDesignPlan = function(designPlan){
     this.activeDesignPlan = designPlan;
 }
 
+project.prototype.setCustomer = function(customer){
+    this.customer = customer;
+}
+
 //it's like a map i.e 1st fl, basement etc
 function designPlan(name, designPlanDOMID){
     this.name = name;
@@ -96,13 +105,14 @@ function designPlan(name, designPlanDOMID){
     this.parentDOM = this.DOM.parentElement;
     this.mapImageSrc = '';
 
-    this.containerDOM = null;
     this.parentProject = null;
     this.mapObjects = {};
     this.activeMapObject = null; // object that was last clicked
     this.selectedMapObjects = {}; // objects that were clicked with ctrl button pressed (first object doesn't have to be clicked with ctrl)
-    this.currentlyClickedMapObject = null; // currently clicked object - this is used for moving the object on mouse move
-    
+    this.currentlyClickedMapObject = null; // currently clicked object - this is used for moving the object on mouse move    
+
+    this.layers = {}; // grouping of objects by type i.e. cameras, access control etc also different notes canvases
+
     this.zoomIntensity = 0.1;
     this.scrollSpeed = 10;
     
@@ -126,17 +136,13 @@ function designPlan(name, designPlanDOMID){
 
 designPlan.prototype.loadMapImage = function(mapImage){
     this.mapImageSrc = mapImage;
-    let query = '#'+this.DOM.id+'>img'
+    let query = '#map_image_plane>img'
     let dom = document.querySelector(query)
     dom.src = this.mapImageSrc;
 }
 
 designPlan.prototype.setParentProject = function(project){
     this.parentProject = project;
-}
-
-designPlan.prototype.setDOM = function(DOM){
-    this.DOM = DOM;
 }
 
 designPlan.prototype.saveTransformValues = function(x,y,scale){
@@ -162,7 +168,7 @@ designPlan.prototype.addMapObject = function(mapObject){
 // insert element to the map objects list, render it on the page, remove it from the side bar
 designPlan.prototype.insertElementToTheMap = function(mapObject, clientX, clientY){
         //var mapObject = this.parentProject.parent_app.app_panes;
-        mapObject.parentDesignPlan = this;
+        //mapObject.parentDesignPlan = this;
         this.addMapObject(mapObject)
         var designPlanRect = this.DOM.getBoundingClientRect();
         var relative_left = (clientX - designPlanRect.x) / this.scale;
@@ -354,12 +360,13 @@ designPlan.prototype.removeMapObjectPopupMenu = function(){
 
 
 
-function mapObject(ID, name, category, mapSymbol, type, locationRect, details, notes, status, onMap){
+function mapObject(ID='', name='', category='', mapIconSrc='', type='', subType='', locationRect=null, details='', notes='', status='', onMap=false){
     this.ID = ID; // for programming
     this.name = name; // for the customer 
     this.category = category; // video surveillance, alarm, access control, intercom, general etc.   
-    this.mapSymbol = mapSymbol; // for the map limited to 3 chars max
-    this.type = type; // camera, dvr, switch, door, motion etc.
+    this.mapIconSrc = mapIconSrc; // for the map limited to 3 chars max
+    this.type = type; // Video Surveillance, Access Control etc.
+    this.subType = subType; // camera, dvr, switch, door, motion etc.
     this.details = details; //IP, ID, DIP etc
     this.notes = notes; // any notes
     this.chat = null; // for communication with team
@@ -368,13 +375,110 @@ function mapObject(ID, name, category, mapSymbol, type, locationRect, details, n
     this.onMap = onMap; // determines if the object is on the map or side menu
     this.DOM = null;  // reference to the DOM object
     this.parentDesignPlan = null;
-    this.mouseClickOffsetX = 0; // delta X between mouse click and object x
-    this.mouseClickOffsetY = 0; // delta Y between mouse click and object y
+    
+
+    this.transformValues = {x:0, y:0, scale:1, rotation:0}
+    this.transformStartValues = {x:0, y:0, scale:1, rotation:0}; // when object is tapped save it's initial values here
     this.translateX = 0;
     this.translateY = 0;
     this.scale = 1;
     this.rotation = 0;
-    this.popup_menu ={}    
+    this.popup_menu ={};
+}
+
+mapObject.prototype.setParentDesignPlan = function(designPlan){
+    this.parentDesignPlan = designPlan;
+}
+
+mapObject.prototype.generateID = function(){
+    let nextNumber = 1;
+    if (Object.keys(this.parentDesignPlan.layers).includes(this.type)){
+        if (Object.keys(this.parentDesignPlan.layers[this.type]).includes(this.subType)){
+            nextNumber = Object.keys(this.parentDesignPlan.layers[this.type][this.subType]).length + 1;
+        }        
+    }
+    this.ID = 'map_object__' + this.type + '__' + this.subType + '__' + nextNumber;
+}
+
+mapObject.prototype.setName = function(){
+    this.name = this.ID.split('__')[2] + this.ID.split('__')[3];
+}
+
+mapObject.prototype.setTypeAndSubType = function(type, subType){
+    this.type = type;
+    this.subType = subType;
+}
+
+mapObject.prototype.assignToLayer = function(){
+    // if layers object of parent design plan doesn't include a type
+    if (!Object.keys(this.parentDesignPlan.layers).includes(this.type)){        
+        this.parentDesignPlan.layers[this.type] = {}; //create this.type object in layers
+        this.parentDesignPlan.layers[this.type][this.subType] = {}; // create this.subType in layers[this.type] 
+    } else if(!Object.keys(this.parentDesignPlan.layers[this.type]).includes(this.subType)){
+        this.parentDesignPlan.layers[this.type][this.subType] = {};
+    }
+    this.parentDesignPlan.layers[this.type][this.subType][this.ID] = this; // add this to the this.type layer in design plan
+}
+
+mapObject.prototype.insertToDesignPlan = function(x,y){
+    this.parentDesignPlan.addMapObject(this);
+    
+    let div = document.createElement('div');
+    if (this.mapIconSrc != ''){
+        div.classList.add('map_object_icon');
+    } else {
+        div.classList.add('map_object_icon_default');
+    }
+    
+    if (this.mapIconSrc != ''){
+        let img = document.createElement('img');
+        img.src = this.iconSrc;
+        div.appendChild(img);
+    } else {
+        div.innerHTML = '<h2>' + this.name[0].toUpperCase() + '</h2>'
+    }
+
+    div.id = this.ID;
+    this.DOM = div;
+
+    //console.log(`tapped: x=${x}, y=${y}, scale=${this.parentDesignPlan.transformValues.scale}`)
+    this.parentDesignPlan.DOM.appendChild(div);
+
+    //calculate offset of the div being inserted to center it with the mouse click/ finger tap 
+    let domRect = div.getBoundingClientRect();
+    let xClickOffset = domRect.width/2;
+    let yClickOffset = domRect.height/2;
+    console.log(xClickOffset,yClickOffset)
+
+    let designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
+    console.log(designPlanRect)
+    this.transformValues.x = (x - designPlanRect.x - xClickOffset)/this.parentDesignPlan.transformValues.scale;//(x - this.parentDesignPlan.transformValues.originX - this.parentDesignPlan.transformValues.x) / this.parentDesignPlan.transformValues.scale;
+    this.transformValues.y = (y - designPlanRect.y - yClickOffset)/this.parentDesignPlan.transformValues.scale// - designPlanRect.y;//y - this.parentDesignPlan.transformValues.originY - this.parentDesignPlan.transformValues.y) / this.parentDesignPlan.transformValues.scale;
+    //let randomColor = Math.random() * 255;
+    //this.DOM.style.backgroundColor = `rgb(${randomColor},${randomColor},${randomColor})`
+    console.log(`transformed: x=${this.transformValues.x}, ${y=this.transformValues.y}`)
+    this.applyTansform();
+}
+
+mapObject.prototype.setClick_TapListener = function(){
+    this.DOM.addEventListener('pointerdown', function(ev){
+        ev.stopPropagation();
+        // this.select();
+        // this.parent.addToSelected();
+
+        //initialize values for translation
+        console.log('element tapped')
+        this.transformStartValues.x = this.transformValues.x;
+        this.transformStartValues.x = this.transformValues.y;
+    }.bind(this));
+}
+
+mapObject.prototype.setMoveListener = function(){
+    this.DOM.addEventListener('pointermove', function(ev){
+        ev.stopPropagation();
+        console.log('element moved')
+        this.moveOnMap(ev.pageX, ev.pageY)
+    }.bind(this))
 }
 
 mapObject.prototype.setLocation = function(x,y){   
@@ -417,8 +521,9 @@ mapObject.prototype.calcMouseClickOffset = function(clientX, clientY){ // for mo
 
 mapObject.prototype.moveOnMap = function(clientX, clientY){
     var designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
-    this.translateX = Math.floor(((clientX - designPlanRect.x)/ this.parentDesignPlan.scale - this.locationRect.left - this.mouseClickOffsetX) );
-    this.translateY = Math.floor(((clientY - designPlanRect.y)/this.parentDesignPlan.scale - this.locationRect.top - this.mouseClickOffsetY) );
+    var domRect = this.DOM.getBoundingClientRect();
+    this.transformValues.x = this.transformStartValues.x + Math.floor(((clientX - domRect.width/2 - designPlanRect.x)/ this.parentDesignPlan.transformValues.scale - this.transformStartValues.x) );
+    this.transformValues.y = this.transformStartValues.y + Math.floor(((clientY - domRect.height/2 - designPlanRect.y)/this.parentDesignPlan.transformValues.scale - this.transformStartValues.y) );
     
     this.applyTansform();
 }
@@ -448,8 +553,8 @@ mapObject.prototype.resizeElement = function(clientX, clientY){
             break;
 
         case "bottom_left":
-                transform_origin = "right top"
-                break;
+            transform_origin = "right top"
+            break;
     }
 
     transform_origin = "center"
@@ -497,7 +602,7 @@ mapObject.prototype.bringOnTop = function(){
 
 mapObject.prototype.applyTansform = function(){
     //console.log(`translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale}) rotate(${this.rotation}deg)`)
-    this.DOM.style.transform = `translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale}) rotate(${this.rotation}deg)`;
+    this.DOM.style.transform = `translate(${this.transformValues.x}px, ${this.transformValues.y}px) scale(${this.transformValues.scale}) rotate(${this.transformValues.rotation}deg)`;
 }
 
 mapObject.prototype.addPopupMenu = function(){
