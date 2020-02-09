@@ -14,6 +14,7 @@ document.addEventListener('doubleTap', function(ev){
 })
 
 app.activeProject.activeDesignPlan.parentDOM.addEventListener('singleTap', function(ev){
+    
     if (app.appMenus['bottom menu'].activeMenuItem){
         let objectType = app.appMenus['bottom menu'].clickedPath.split('/').slice(-2)[0];
         let objectSubType = app.appMenus['bottom menu'].activeMenuItem.name;
@@ -42,7 +43,8 @@ let singleTapFunction = null; // used to setTimeout on singleTap function to exe
 let doubleTapFunction = null;
 
 app.activeProject.activeDesignPlan.parentDOM.addEventListener('pointerdown', function(ev){
-
+    console.log('app container touch')
+    
     let activeDesignPlan = app.activeProject.activeDesignPlan;
     activeDesignPlan.touchStartPointers[ev.pointerId] = ev;    
     activeDesignPlan.touchStartPointers[ev.pointerId].starTime = new Date(); // to test for single, double tap
@@ -52,10 +54,10 @@ app.activeProject.activeDesignPlan.parentDOM.addEventListener('pointerdown', fun
 
     //activeDesignPlan.touchCurrentPointers[ev.pointerId] = ev;    
     quickTapWaitFlag = true; // set the flag that is set to false after tapsInterval, this flag status is checked in the touch end function
-    tapDownWaitFunction = setTimeout(tappedAndHeld, tapsInterval); // set timeout to see if the finger touched and was held for at least tapsInterval
+    tapDownWaitFunction = setTimeout(function(){tappedAndHeld(ev)}, tapsInterval); // set timeout to see if the finger touched and was held for at least tapsInterval
 })
 
-function tappedAndHeld(){ // finger was tapped and held for at least tapsInterval
+function tappedAndHeld(ev){ // finger was tapped and held for at least tapsInterval
     let activeDesignPlan = app.activeProject.activeDesignPlan;
     quickTapWaitFlag = false;  // turn off the flag that 
     tapCounter = 0; // set tap counter to 0 - if any of the taps was held it means that it is not multi tap event

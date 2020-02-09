@@ -10,7 +10,8 @@
     background-color: white;
     border: 1px solid black;
     border-radius: 50%;
-    z-index: 2;
+    z-index: 4;
+    transform-origin: center;
 }
 
 .map_object_icon_default>h2{
@@ -19,4 +20,28 @@
     padding:0 5px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 1rem;
+}
+
+.map_object_selection_frame{
+    position: absolute;
+    display: inline-block;    
+    border-radius: 50%;
+    border: 1px dashed rgb(255, 116, 2);
+    /* background-color: yellow; */
+    z-index: 3;
+    left: 0;
+    top: 0;
+    /* transform-origin: center; */
+}
+
+.map_object_rotation_node{
+    position: absolute;
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgb(61, 61, 61);
+    left: -10px;
+    top: -10px;
+    z-index: 4;
 }

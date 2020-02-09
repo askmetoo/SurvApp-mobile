@@ -1,4 +1,10 @@
 
+.bottom_menu{
+    position: absolute;
+    bottom: 0px;
+    height: 100px;
+    width: 100%;
+}
 
 .bottom_menu_list{  
     position: absolute;

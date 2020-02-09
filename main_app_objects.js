@@ -213,19 +213,23 @@ designPlan.prototype.setActiveObject = function(mapObject){
     
     if(mapObject != null){
         this.activeMapObject = mapObject;
-        this.activeMapObject.DOM.classList.add("map_object-" + this.activeMapObject.type + "_selected_active");        
-        this.selectionFrameDOMs = add_selection_frame_around_DOM(this.activeMapObject.DOM);        
+        //this.activeMapObject.DOM.classList.add("map_object-" + this.activeMapObject.type + "_selected_active");        
+        //this.selectionFrameDOMs = add_selection_frame_around_DOM(this.activeMapObject.DOM);        
     }
+}
+
+designPlan.prototype.getActiveObject = function(){
+    return this.activeMapObject;
 }
 
 designPlan.prototype.unsetActiveObject = function(){
     if(general_validation(this.activeMapObject)){
-        this.activeMapObject.DOM.classList.remove("map_object-" + this.activeMapObject.type + "_selected_active"); 
+        //this.activeMapObject.DOM.classList.remove("map_object-" + this.activeMapObject.type + "_selected_active"); 
         this.activeMapObject = null;
-        for(var k in this.selectionFrameDOMs){
-            if(k== 'parent') continue;
-            this.selectionFrameDOMs[k].remove();
-        }
+        // for(var k in this.selectionFrameDOMs){
+        //     if(k== 'parent') continue;
+        //     this.selectionFrameDOMs[k].remove();
+        //}
     }    
 }
 
@@ -376,6 +380,8 @@ function mapObject(ID='', name='', category='', mapIconSrc='', type='', subType=
     this.DOM = null;  // reference to the DOM object
     this.parentDesignPlan = null;
     
+    this.selectionFrame = {frameDOM: null, rotationNodeDOM: null};
+    this.rotationNode = null;
 
     this.transformValues = {x:0, y:0, scale:1, rotation:0}
     this.transformStartValues = {x:0, y:0, scale:1, rotation:0}; // when object is tapped save it's initial values here
@@ -458,6 +464,8 @@ mapObject.prototype.insertToDesignPlan = function(x,y){
     //this.DOM.style.backgroundColor = `rgb(${randomColor},${randomColor},${randomColor})`
     console.log(`transformed: x=${this.transformValues.x}, ${y=this.transformValues.y}`)
     this.applyTansform();
+
+    this.selectObject();
 }
 
 mapObject.prototype.setClick_TapListener = function(){
@@ -470,6 +478,8 @@ mapObject.prototype.setClick_TapListener = function(){
         console.log('element tapped')
         this.transformStartValues.x = this.transformValues.x;
         this.transformStartValues.x = this.transformValues.y;
+        this.selectObject();
+        
     }.bind(this));
 }
 
@@ -479,6 +489,63 @@ mapObject.prototype.setMoveListener = function(){
         console.log('element moved')
         this.moveOnMap(ev.pageX, ev.pageY)
     }.bind(this))
+}
+
+mapObject.prototype.selectObject = function(){
+    let currentActiveObject = this.parentDesignPlan.getActiveObject();
+        
+        if(general_validation(currentActiveObject)){
+            if(currentActiveObject != this){
+                currentActiveObject.unsetSelectionFrame();
+                this.parentDesignPlan.setActiveObject(this);
+                this.setSelectionFrame();
+            }
+        } else {
+            this.parentDesignPlan.setActiveObject(this);
+            this.setSelectionFrame();
+        }
+}
+
+mapObject.prototype.setSelectionFrame = function(){
+    let selectionFrame = document.createElement('div');
+    selectionFrame.classList.add('map_object_selection_frame');
+
+    let elementRect =  this.DOM.getBoundingClientRect();
+    let elementLargerDimension = (elementRect.width > elementRect.height ? elementRect.width : elementRect.height) / this.parentDesignPlan.transformValues.scale;
+
+    selectionFrame.style.width = parseInt(elementLargerDimension *1.4) + 'px';
+    selectionFrame.style.height = parseInt(elementLargerDimension *1.4) + 'px';
+
+    this.DOM.appendChild(selectionFrame); // to get rect dims the element needs to be added to DOM
+
+    let frameRect = selectionFrame.getBoundingClientRect();
+    let frameLeft = (Math.floor(- (frameRect.width - elementRect.width) / 2) -1)/ this.parentDesignPlan.transformValues.scale;
+    let frameTop = (Math.floor(- (frameRect.height - elementRect.height) / 2) -1) / this.parentDesignPlan.transformValues.scale;
+    selectionFrame.style.transform = `translate(${frameLeft}px, ${frameTop}px)`;
+    //selectionFrame.style.top = this.transformValues.y + 'px';
+
+    let rotationNode = document.createElement('div');
+    rotationNode.classList.add('map_object_rotation_node');
+    this.DOM.appendChild(rotationNode);
+
+    this.selectionFrame.frameDOM = selectionFrame;
+    this.selectionFrame.rotationNodeDOM = rotationNode;
+
+    rotationNode.addEventListener('pointerdown', function(ev){
+        ev.stopPropagation();
+        console.log('rotation start...')
+        this.selectionFrame.rotationNodeDOM.addEventListener('pointermove', function(ev){
+            ev.stopPropagation();
+            console.log('rotation in progress...')
+            this.rotateElement(ev.pageX,ev.pageY);
+        }.bind(this))
+            // 'this' is mapObject because of bind
+    }.bind(this))
+}
+
+mapObject.prototype.unsetSelectionFrame = function(){
+    this.selectionFrame.frameDOM.remove();
+    this.selectionFrame.rotationNodeDOM.remove();
 }
 
 mapObject.prototype.setLocation = function(x,y){   
@@ -491,9 +558,9 @@ mapObject.prototype.getSizeLocation = function(){
 }
 
 mapObject.prototype.getTransformedXY = function(){ // gets position of the object after translation
-    var xy = {
-        x: this.locationRect.left,
-        y: this.locationRect.top
+    let xy = {
+        x: this.transformValues.left,
+        y: this.transformValues.top
     }
     var style = this.DOM.style.getPropertyValue('transform') //returns i.e. translate(99px, 146px) scale(1) rotate(0deg)
    
@@ -574,21 +641,19 @@ mapObject.prototype.resizeElement = function(clientX, clientY){
     //console.log(' by scale of ' + scale)
 }
 
-mapObject.prototype.rotateElement = function(clientX, clientY){
-    var designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
-    var cssTransformedXY = this.getTransformedXY();
+mapObject.prototype.rotateElement = function(pointerX, pointerY){
+    let pointerLocalX = pointerX / this.parentDesignPlan.transformValues.scale;
+    let pointerLocalY = pointerY / this.parentDesignPlan.transformValues.scale;
 
-    var center_x = cssTransformedXY.x + this.locationRect.width / 2;
-    var center_y = cssTransformedXY.y + this.locationRect.height / 2;
-    var mouse_x = (clientX - designPlanRect.x)/ this.parentDesignPlan.scale;
-    var mouse_y = (clientY - designPlanRect.y)/ this.parentDesignPlan.scale;
+    let domRect = this.DOM.getBoundingClientRect();
 
+    let objectCenterX = (domRect.x + domRect.width/2) / this.parentDesignPlan.transformValues.scale;
+    let objectCenterY = (domRect.y + domRect.height/2) / this.parentDesignPlan.transformValues.scale;
 
-    var radians = Math.atan2( mouse_y - center_y, mouse_x - center_x);
-    this.rotation = radians * ((180 / Math.PI) * 1)+45; // degrees
-    // console.log('radians = ' + radians);
-    var degree = 0// (radians * (180 / Math.PI) * 1) + 90;// - mapObject.rotation;
-    console.log('this.rotate = ' + this.rotation);
+    let radians = Math.atan2(pointerLocalY - objectCenterY, pointerLocalX - objectCenterX)
+    this.transformValues.rotation = radians * ((180 / Math.PI) * 1)+135; // + 135 because the rotation node is at 135 degrees from the x axis (90+45)
+   
+    //console.log(this.transformValues.rotation)
     this.applyTansform();
 }
 

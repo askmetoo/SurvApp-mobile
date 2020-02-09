@@ -243,7 +243,7 @@ subMenu.prototype.getTopParent = function(){
 }
 
 subMenu.prototype.showMenu = function(){
-    console.log('showing menu');
+    //console.log('showing menu');
 
     if(this.topParent.activeSubmenu){
         this.topParent.activeSubmenu.hideMenu();
@@ -278,23 +278,24 @@ function menuItem(parent, name, itemJSON){
     //if this there items in this item create submenu
     this.subMenu = itemJSON.items != undefined ? new subMenu(this, itemJSON.items, this.parent.parentDOM) : null;
 
-    this.DOM.addEventListener('touchstart',  function(){
-        
+    this.DOM.addEventListener('pointerdown',  function(ev){
+        ev.stopPropagation();
         if(this.parent.parent === this.topParent){// check if this subMenu is the top subMenu - the bottom bar
-            this.topParent.unsetActiveTopSubmenuItem();
-            this.topParent.setActiveTopSubmenuItem(this);
-            //this.DOM.classList.add('bottom_menu_list_active_item')
-        }
-    
-
-        if(this.subMenu){
-            // if (this.subMenu.visible){
-            //     this.topParent.clickedPath = '';
-            //     this.subMenu.hideMenu();
-            // } else {
+            if(this.topParent.activeTopSubmenuItem && this.topParent.activeTopSubmenuItem == this){ // this item's submenu is already visible
+                this.topParent.activeSubmenu.hideMenu(); // so hide it
+                //console.log('hides submenu 1')
+                this.topParent.unsetActiveTopSubmenuItem();
+            } else {
+                this.topParent.unsetActiveTopSubmenuItem();
+                this.topParent.setActiveTopSubmenuItem(this);
+            }
+        } 
+        
+        if(this.subMenu){ // if this item has subMenu
+           if(this.topParent.activeTopSubmenuItem){
+            this.subMenu.showMenu(); // hides also previously shown menu
+           }           
             
-            this.subMenu.showMenu(); // hides previously shown menu
-            //}
         } else { // if the clicked element doesnt have a subMenu this means it is an 'end' item           
             if(this.topParent.activeMenuItem){ // if there is an active item already
                 let newPath = this.topParent.clickedPath.split('/') 

@@ -14,3 +14,10 @@ function isObject(obj){
     }
     return false;
 }
+
+function general_validation(obj){
+    if(obj != null && obj != undefined && obj != ''){
+        return true;
+    }
+    return false;
+}
