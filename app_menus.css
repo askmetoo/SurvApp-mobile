@@ -75,6 +75,7 @@
     bottom: -150px;
     background-color: rgb(160, 163, 173);
     width: 100%;
+    max-height: 200px;
     border-radius: 2%;
     z-index: 1;
     margin: auto;
@@ -82,6 +83,7 @@
     padding-bottom: 20px;     
     transition: bottom 0.7s;
     z-index: 6;
+    overflow: auto;
 }
 
 .bottom_menu_list_item_submenu_visible{
@@ -108,3 +110,5 @@
 /* .bottom_menu_list_item_submenu>li:hover{
     background-color: white;
 } */
+
+

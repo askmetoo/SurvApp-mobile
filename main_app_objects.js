@@ -364,22 +364,28 @@ designPlan.prototype.removeMapObjectPopupMenu = function(){
 
 
 
-function mapObject(ID='', name='', category='', mapIconSrc='', type='', subType='', locationRect=null, details='', notes='', status='', onMap=false){
-    this.ID = ID; // for programming
-    this.name = name; // for the customer 
-    this.category = category; // video surveillance, alarm, access control, intercom, general etc.   
-    this.mapIconSrc = mapIconSrc; // for the map limited to 3 chars max
-    this.type = type; // Video Surveillance, Access Control etc.
-    this.subType = subType; // camera, dvr, switch, door, motion etc.
-    this.details = details; //IP, ID, DIP etc
-    this.notes = notes; // any notes
-    this.chat = null; // for communication with team
-    this.status = status; // installed, not started, wired, cancelled etc
+function mapObject(equipment, ID='', mapIconSrc='', type='', subType='', locationRect=null, details='', notes='', status='', onMap=false){
+    this.associatedEquipment = equipment;
+    
+    this.name = equipment.name; // for the customer 
+    this.type = equipment.type; // Video Surveillance, Access Control etc.
+    this.subType = equipment.subType; // camera, dvr, switch, door, motion etc.
+    this.ID = 'map_object__' + this.type + '__' + this.subType + '__' + equipment.equipmentNumber; // for DOM
+    this.mapSymbol = this.subType.substring(0,1).toUpperCase() + equipment.equipmentNumber;
+    this.mapNumber = equipment.equipmentNumber;
+    this.mapIconSrc = mapIconSrc;    
+   
     this.locationRect = locationRect; // location on the map in pixels
     this.onMap = onMap; // determines if the object is on the map or side menu
-    this.DOM = null;  // reference to the DOM object
+
+    this.elementDOM = null;  // reference to the DOM of the mapObject icon
+    this.containerDOM = null; // reference to the DOM of the mapObject container which may hold many different buttons, descriptions etc.
+
     this.parentDesignPlan = null;
+    this.parentLayer = null;
+
     
+    this.displayName = true;
     this.selectionFrame = {frameDOM: null, rotationNodeDOM: null};
     this.rotationNode = null;
 
@@ -396,14 +402,16 @@ mapObject.prototype.setParentDesignPlan = function(designPlan){
     this.parentDesignPlan = designPlan;
 }
 
-mapObject.prototype.generateID = function(){
+mapObject.prototype.generateIDAndMapSymbol = function(){
     let nextNumber = 1;
     if (Object.keys(this.parentDesignPlan.layers).includes(this.type)){
         if (Object.keys(this.parentDesignPlan.layers[this.type]).includes(this.subType)){
             nextNumber = Object.keys(this.parentDesignPlan.layers[this.type][this.subType]).length + 1;
         }        
     }
-    this.ID = 'map_object__' + this.type + '__' + this.subType + '__' + nextNumber;
+    this.ID = 'map_object__' + this.type + '__' + this.subType + '__' + this.equipment.equipmentNumber;
+    this.mapNumber = nextNumber;
+    this.mapSymbol = this.subType.substring(0,1).toUpperCase() + nextNumber;
 }
 
 mapObject.prototype.setName = function(){
@@ -424,10 +432,15 @@ mapObject.prototype.assignToLayer = function(){
         this.parentDesignPlan.layers[this.type][this.subType] = {};
     }
     this.parentDesignPlan.layers[this.type][this.subType][this.ID] = this; // add this to the this.type layer in design plan
+    this.parentLayer = this.parentDesignPlan.layers[this.type][this.subType];
+    // add to menu layers
+    app.appMenus['bottom menu'].addItem('layers', this.type, this.subType, this.name);
+    
 }
 
 mapObject.prototype.insertToDesignPlan = function(x,y){
     this.parentDesignPlan.addMapObject(this);
+   
     
     let div = document.createElement('div');
     if (this.mapIconSrc != ''){
@@ -441,35 +454,55 @@ mapObject.prototype.insertToDesignPlan = function(x,y){
         img.src = this.iconSrc;
         div.appendChild(img);
     } else {
-        div.innerHTML = '<h2>' + this.name[0].toUpperCase() + '</h2>'
+        div.innerHTML = '<h2>' + this.mapSymbol + '</h2>'
+    }
+    
+    div.id = this.ID;
+    this.elementDOM = div;
+
+    let containerDOM = document.createElement('div');
+    containerDOM.classList.add('map_object_container');
+    containerDOM.appendChild(div);
+    this.containerDOM = containerDOM;
+
+    if (this.displayName){
+        let nameDOM = document.createElement('p');
+        nameDOM.classList.add('map_object_name');
+        nameDOM.innerHTML = this.name;
+        containerDOM.appendChild(nameDOM);
     }
 
-    div.id = this.ID;
-    this.DOM = div;
+    
 
     //console.log(`tapped: x=${x}, y=${y}, scale=${this.parentDesignPlan.transformValues.scale}`)
-    this.parentDesignPlan.DOM.appendChild(div);
+    this.parentDesignPlan.DOM.appendChild(containerDOM);
 
     //calculate offset of the div being inserted to center it with the mouse click/ finger tap 
     let domRect = div.getBoundingClientRect();
     let xClickOffset = domRect.width/2;
     let yClickOffset = domRect.height/2;
-    console.log(xClickOffset,yClickOffset)
+    //console.log(xClickOffset,yClickOffset)
 
     let designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
-    console.log(designPlanRect)
+    //console.log(designPlanRect)
     this.transformValues.x = (x - designPlanRect.x - xClickOffset)/this.parentDesignPlan.transformValues.scale;//(x - this.parentDesignPlan.transformValues.originX - this.parentDesignPlan.transformValues.x) / this.parentDesignPlan.transformValues.scale;
     this.transformValues.y = (y - designPlanRect.y - yClickOffset)/this.parentDesignPlan.transformValues.scale// - designPlanRect.y;//y - this.parentDesignPlan.transformValues.originY - this.parentDesignPlan.transformValues.y) / this.parentDesignPlan.transformValues.scale;
     //let randomColor = Math.random() * 255;
     //this.DOM.style.backgroundColor = `rgb(${randomColor},${randomColor},${randomColor})`
-    console.log(`transformed: x=${this.transformValues.x}, ${y=this.transformValues.y}`)
-    this.applyTansform();
+    //console.log(`transformed: x=${this.transformValues.x}, ${y=this.transformValues.y}`)
+    this.applyTansform('translate');
+
+    this.addPopupMenu('mapObject_popup_menu');
+    this.addPopupMenuItems(['details', 'add note', 'photos', 'delete'])
+    this.popupMenuShow();
+   // this.setPopupMenuListener();
+
 
     this.selectObject();
 }
 
 mapObject.prototype.setClick_TapListener = function(){
-    this.DOM.addEventListener('pointerdown', function(ev){
+    this.elementDOM.addEventListener('pointerdown', function(ev){
         ev.stopPropagation();
         // this.select();
         // this.parent.addToSelected();
@@ -480,11 +513,12 @@ mapObject.prototype.setClick_TapListener = function(){
         this.transformStartValues.x = this.transformValues.y;
         this.selectObject();
         
+        
     }.bind(this));
 }
 
 mapObject.prototype.setMoveListener = function(){
-    this.DOM.addEventListener('pointermove', function(ev){
+    this.containerDOM.addEventListener('pointermove', function(ev){
         ev.stopPropagation();
         console.log('element moved')
         this.moveOnMap(ev.pageX, ev.pageY)
@@ -504,19 +538,21 @@ mapObject.prototype.selectObject = function(){
             this.parentDesignPlan.setActiveObject(this);
             this.setSelectionFrame();
         }
+        this.bringOnTop();
+        this.popupMenuShow();
 }
 
 mapObject.prototype.setSelectionFrame = function(){
     let selectionFrame = document.createElement('div');
     selectionFrame.classList.add('map_object_selection_frame');
 
-    let elementRect =  this.DOM.getBoundingClientRect();
+    let elementRect =  this.elementDOM.getBoundingClientRect();
     let elementLargerDimension = (elementRect.width > elementRect.height ? elementRect.width : elementRect.height) / this.parentDesignPlan.transformValues.scale;
 
     selectionFrame.style.width = parseInt(elementLargerDimension *1.4) + 'px';
     selectionFrame.style.height = parseInt(elementLargerDimension *1.4) + 'px';
 
-    this.DOM.appendChild(selectionFrame); // to get rect dims the element needs to be added to DOM
+    this.elementDOM.appendChild(selectionFrame); // to get rect dims the element needs to be added to DOM
 
     let frameRect = selectionFrame.getBoundingClientRect();
     let frameLeft = (Math.floor(- (frameRect.width - elementRect.width) / 2) -1)/ this.parentDesignPlan.transformValues.scale;
@@ -526,21 +562,23 @@ mapObject.prototype.setSelectionFrame = function(){
 
     let rotationNode = document.createElement('div');
     rotationNode.classList.add('map_object_rotation_node');
-    this.DOM.appendChild(rotationNode);
+    this.elementDOM.appendChild(rotationNode);
 
     this.selectionFrame.frameDOM = selectionFrame;
     this.selectionFrame.rotationNodeDOM = rotationNode;
 
     rotationNode.addEventListener('pointerdown', function(ev){
         ev.stopPropagation();
-        console.log('rotation start...')
+        //console.log('rotation start...')
         this.selectionFrame.rotationNodeDOM.addEventListener('pointermove', function(ev){
             ev.stopPropagation();
-            console.log('rotation in progress...')
+            //console.log('rotation in progress...')
             this.rotateElement(ev.pageX,ev.pageY);
         }.bind(this))
             // 'this' is mapObject because of bind
     }.bind(this))
+
+
 }
 
 mapObject.prototype.unsetSelectionFrame = function(){
@@ -554,26 +592,23 @@ mapObject.prototype.setLocation = function(x,y){
 }
 
 mapObject.prototype.getSizeLocation = function(){
-    return this.DOM.getBoundingClientRect();
+    return this.elementDOM.getBoundingClientRect();
 }
 
 mapObject.prototype.getTransformedXY = function(){ // gets position of the object after translation
-    let xy = {
-        x: this.transformValues.left,
-        y: this.transformValues.top
-    }
-    var style = this.DOM.style.getPropertyValue('transform') //returns i.e. translate(99px, 146px) scale(1) rotate(0deg)
+    let xy = {}
+    var style = this.containerDOM.style.getPropertyValue('transform') //returns i.e. translate(99px, 146px) scale(1) rotate(0deg)
    
     if(general_validation(style)){
         var translate = style.match(/\(([^)]+)\)/); // regular expression that gets a value in 1st parenthesis - value of translate        
-        xy.x += parseInt(translate[1].split(',')[0]);
-        xy.y += parseInt(translate[1].split(',')[1])
+        xy.x = parseInt(translate[1].split(',')[0]);
+        xy.y = parseInt(translate[1].split(',')[1])
     }
    return xy;
 }
 
 mapObject.prototype.lift = function(ID){
-    this.DOM.classList.add('map_object_lifted');
+    this.elementDOM.classList.add('map_object_lifted');
 }
 
 mapObject.prototype.calcMouseClickOffset = function(clientX, clientY){ // for moving object on the map with mouse - calculates difference between mouse click location and object location
@@ -588,17 +623,17 @@ mapObject.prototype.calcMouseClickOffset = function(clientX, clientY){ // for mo
 
 mapObject.prototype.moveOnMap = function(clientX, clientY){
     var designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
-    var domRect = this.DOM.getBoundingClientRect();
+    var domRect = this.containerDOM.getBoundingClientRect();
     this.transformValues.x = this.transformStartValues.x + Math.floor(((clientX - domRect.width/2 - designPlanRect.x)/ this.parentDesignPlan.transformValues.scale - this.transformStartValues.x) );
     this.transformValues.y = this.transformStartValues.y + Math.floor(((clientY - domRect.height/2 - designPlanRect.y)/this.parentDesignPlan.transformValues.scale - this.transformStartValues.y) );
     
-    this.applyTansform();
+    this.applyTansform('translate');
 }
 
 mapObject.prototype.resizeElement = function(clientX, clientY){
     //console.log('trying resizing')
     var elementToTransform = this.parentDesignPlan.elementToTransform;
-    var objectToResizeRect = this.DOM.getBoundingClientRect();
+    var objectToResizeRect = this.elementDOM.getBoundingClientRect();
     //console.log('resizing id: ' + objectToResize.ID)
     var transform_origin = '';
     var scaleX = this.scale.x;
@@ -636,7 +671,7 @@ mapObject.prototype.resizeElement = function(clientX, clientY){
     
     this.scale = scale;
    
-    this.DOM.style.transformOrigin = transform_origin;
+    this.elementDOM.style.transformOrigin = transform_origin;
     this.applyTansform();
     //console.log(' by scale of ' + scale)
 }
@@ -645,7 +680,7 @@ mapObject.prototype.rotateElement = function(pointerX, pointerY){
     let pointerLocalX = pointerX / this.parentDesignPlan.transformValues.scale;
     let pointerLocalY = pointerY / this.parentDesignPlan.transformValues.scale;
 
-    let domRect = this.DOM.getBoundingClientRect();
+    let domRect = this.elementDOM.getBoundingClientRect();
 
     let objectCenterX = (domRect.x + domRect.width/2) / this.parentDesignPlan.transformValues.scale;
     let objectCenterY = (domRect.y + domRect.height/2) / this.parentDesignPlan.transformValues.scale;
@@ -654,30 +689,35 @@ mapObject.prototype.rotateElement = function(pointerX, pointerY){
     this.transformValues.rotation = radians * ((180 / Math.PI) * 1)+135; // + 135 because the rotation node is at 135 degrees from the x axis (90+45)
    
     //console.log(this.transformValues.rotation)
-    this.applyTansform();
+    this.applyTansform('rotate');
 }
 
 mapObject.prototype.bringOnTop = function(){
     var mapObjects = this.parentDesignPlan.mapObjects;
     for(let k in mapObjects){
-        mapObjects[k].DOM.style.zIndex = 1;
+        mapObjects[k].containerDOM.style.zIndex = 1;
     }
-    this.DOM.style.zIndex = 10;
+    this.containerDOM.style.zIndex = 10;
 }
 
-mapObject.prototype.applyTansform = function(){
+mapObject.prototype.applyTansform = function(which){
+    if(which == 'translate'){
+        this.containerDOM.style.transform = `translate(${this.transformValues.x}px, ${this.transformValues.y}px) scale(${this.transformValues.scale})`
+    } else if(which == 'rotate'){
+        this.elementDOM.style.transform = `rotate(${this.transformValues.rotation}deg)`;
+    }
     //console.log(`translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale}) rotate(${this.rotation}deg)`)
-    this.DOM.style.transform = `translate(${this.transformValues.x}px, ${this.transformValues.y}px) scale(${this.transformValues.scale}) rotate(${this.transformValues.rotation}deg)`;
+    
 }
 
-mapObject.prototype.addPopupMenu = function(){
-    this.popup_menu = new app_pane('map_object_popup_menu', 'map_object_popup_menu'); // (name, DOM_ID)
-    this.popup_menu.callingElement = this;
+mapObject.prototype.addPopupMenu = function(domClass){
+    this.popup_menu = new app_pane('map_object_popup_menu', 'popup menu', this.parentDesignPlan.parentDOM, this, domClass); // (name, DOM_ID)
+    //this.popup_menu.callingElement = this;
 }
 
 mapObject.prototype.addPopupMenuItem = function(name){
     var menuItem = this.popup_menu.add_item(new app_pane_general_item(this.ID + '__popup_menu__' + name, name)); // (ID, name)
-    
+    menuItem.addParent(this.popup_menu);
 }
 
 mapObject.prototype.addPopupMenuItems = function(names){
@@ -692,16 +732,76 @@ mapObject.prototype.addPopupMenuSubmenuItem = function(name, submenu_item_name){
 }
 
 mapObject.prototype.popupMenuShow = function(){
-    this.popup_menu.RENDER();
+    if(this.parentDesignPlan.mapObjectPopupMenu){
+        this.parentDesignPlan.mapObjectPopupMenu.callingElement.popupMenuRemove();
+    }
+    this.popup_menu.render();
+    this.setPopupMenuListener();
     app.activeProject.activeDesignPlan.mapObjectPopupMenu = this.popup_menu;
+}
+
+mapObject.prototype.setPopupMenuListener = function(){
+    for(let k in this.popup_menu.pane_items){
+        let item = this.popup_menu.pane_items[k];
+        item.DOM.addEventListener('pointerdown',listener = (ev) => {
+            ev.stopPropagation();
+            //console.log('test')
+            
+            let menuClicked = ev.target.id.split('__')[5];
+            console.log(this.name + ': ' + menuClicked + ' clicked' );
+
+            switch (menuClicked){
+                case 'details':
+                    console.log('building details dialog')
+                    this.addDetailsPane('map_object_details_pane')
+                    let dialog = this.detailsPane.render();
+                    this.parentDesignPlan.parentDOM.appendChild(dialog);
+                    break;
+            }
+        })
+    }
+    
 }
 
 mapObject.prototype.popupMenuRemove = function(){
     if(app.activeProject.activeDesignPlan.mapObjectPopupMenu!=null){
-       var pane_DOM =  app.activeProject.activeDesignPlan.mapObjectPopupMenu.pane_DOM;
-        while (pane_DOM.firstChild) {
-            pane_DOM.removeChild(pane_DOM.firstChild);
+        for(let k in this.popup_menu.pane_items){
+            let item = this.popup_menu.pane_items[k];
+            item.DOM = null;
         }
+       var DOM =  app.activeProject.activeDesignPlan.mapObjectPopupMenu.DOM;
+        while (DOM.firstChild) {
+            DOM.removeChild(DOM.firstChild);
+        }
+        DOM.parentElement.removeChild(DOM);
     }
    
 }
+
+mapObject.prototype.addDetailsPane = function(domClass){
+    this.detailsPane = new app_pane('map_object_details_pane', 'map object details', this.parentDesignPlan.parentDOM, this, domClass); // (name, DOM_ID)    
+}
+
+mapObject.prototype.addDetailsPaneItem = function(name, value, htmlElement, domID, domClass){
+    this.detailsPane.items = {};
+    this.detailsPane.items[name].name = name;
+    this.detailsPane.items[name].value = value;
+    this.detailsPane.items[name].htmlElement = htmlElement;
+    this.detailsPane.items[name].domID = domID;
+    this.detailsPane.items[name].domClass = domClass;
+}
+
+mapObject.prototype.addDetailsPaneItems = function(){
+    this.addDetailsPaneItem(this.name, this.type, )
+}
+
+
+// function camera(name, ID, mapIconSrc, details, model, resolution){
+//     mapObject.call(this, ID, name, mapIconSrc, 'video surveillance', 'camera', null, details)
+//     this.model = model;
+//     this.resolution = resolution;
+//     this.prototype = Object.create(mapObject);
+//     this.type='camera'
+//     console.dir(this)
+// }
+

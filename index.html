@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="app_menus.css">
     <link rel="stylesheet" href="map_elements.css">
-    
 
+    
 </head>
 
 <body>
@@ -33,12 +33,42 @@
     </div>    
 </body>
 
+<script type="text/javascript" src="firebase.js"></script>
 <script type="text/javascript" src="tools.js"></script>
+<script type="text/javascript" src="equipment.js"></script>
+
 <script type="text/javascript" src="app_menus.js"></script>
+<script type="text/javascript" src="app_panes.js"></script>
 <script type="text/javascript" src="main_app_objects.js"></script>
 <script type="text/javascript" src="index.js"></script>
 <script type="text/javascript" src="app_interaction.js"></script>
 
+
 <script type="text/javascript" src="tests.js"></script>
+
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.8.2/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/7.8.2/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.8.2/firebase-analytics.js"></script>
+
+<script>
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    apiKey: "AIzaSyCuE0RbmYb9vBCdQ4Oqtx5J7FdJ6XE8yM4",
+    authDomain: "survapp-37bfa.firebaseapp.com",
+    databaseURL: "https://survapp-37bfa.firebaseio.com",
+    projectId: "survapp-37bfa",
+    storageBucket: "survapp-37bfa.appspot.com",
+    messagingSenderId: "737842815655",
+    appId: "1:737842815655:web:acdb51bd220bdebb333182",
+    measurementId: "G-1DZZ00C2PK"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+</script>
 
 </html>

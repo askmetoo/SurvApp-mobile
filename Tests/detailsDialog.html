@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>details dialog</title>
+    <link rel="shortcut icon" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css?family=Anton" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="detailsDialog.css">
+    
+    
+</head>
+
+<body>
+    <div id='details_dialog_overlay'>
+        <div id='detailsDialog' class='detailsDialog'>
+            <div id='detailsDialogHeader'>
+                <p> Test map object title </p>
+            </div>
+            <div id='detailsDialogBody'>
+                <div class="block form-group" id='detailsDialog-Type'>
+                    <label for="equipment_type">Type:</label>
+                    <select id="equipment_type">
+                        <option value="camera">Camera</option>
+                        <option value="door">Door</option>
+                        <option value="motion">Motion</option>                        
+                    </select>                        
+                </div>
+                <hr>
+                <div class="block form-group" id='detailsDialog-details'>
+                    <label for="equipment_details">Details:</label>
+                    <textarea id="equipment_details" rows="5"></textarea>
+                </div>
+                <hr>
+                <div class="block form-group" id='detailsDialog-status'>
+                        <label for="equipment_status">Status:</label>
+                        <select id="equipment_status">
+                            <option value="not started">not started</option>
+                            <option value="wired">wired</option>
+                            <option value="installed">installed</option>
+                            <option value="done">done</option>                        
+                        </select>                        
+                </div>
+                <div class="block form-group" id='detailsDialog-notes'>
+                        <label for="equipment_notes">Notes:</label>
+                        <textarea id="equipment_notes" rows="5"></textarea>
+                    </div>
+                    <hr>
+                <div class="block form-group" id='detailsDialog-pictures'>
+                        <label for="equipment_pictures">Pictures:</label>
+                        <div id="equipment_pictures">
+                            <ul>
+                                <li class='picture_item' id="picture_item_1">Pic1</li>
+                                <li class='picture_item' id="picture_item_2">Pic2</li>
+                                <li class='picture_item' id="picture_item_3">Pic3</li>
+                                <li class='picture_item' id="picture_item_4">Pic4</li>
+                                <li class='picture_item' id="picture_item_5">Pic5</li>
+                            </ul>     
+                        </div>            
+                </div>
+                <hr>
+                <div id='detailsDialogNotesSection'></div>
+                <div id='detailsDialogPicturesSection'></div>
+                <div id='detailsDialogAttachmentsSection'></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
