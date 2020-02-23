@@ -754,8 +754,10 @@ mapObject.prototype.setPopupMenuListener = function(){
                 case 'details':
                     console.log('building details dialog')
                     this.addDetailsPane('map_object_details_pane')
-                    let dialog = this.detailsPane.render();
-                    this.parentDesignPlan.parentDOM.appendChild(dialog);
+                    let dialog = this.detailsPane.render(this.parentDesignPlan.parentDOM);
+                    //.appendChild(dialog);
+                    
+                    
                     break;
             }
         })

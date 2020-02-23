@@ -25,19 +25,14 @@ function general_validation(obj){
 }
 
 function renderHTMLElement(parent, fieldName, htmlTag, id, domClass, value, valueOptions, label){
-    if(label){
-        let label = document.createElement('label');
-        label.htmlFor = fieldName;
-        label.innerHTML = value;
-        parent.appendChild(label);
-    }
+    
     let element = document.createElement(htmlTag);
     if(general_validation(domClass)){
         element.classList.add(domClass);
     }
     element.id = id;
     element.name = fieldName;
-    if(general_validation(value)){
+    if(/*general_validation(value)*/true){
         switch (htmlTag){
             case 'div':
                 break;
@@ -56,12 +51,60 @@ function renderHTMLElement(parent, fieldName, htmlTag, id, domClass, value, valu
                     option.text = elem;
                     option.value = elem;
                     element.appendChild(option);
+                    
                 }
+                element.value = value;
                 break;
         }
     }
 
     parent.appendChild(element);
+    if(label){
+        let label = document.createElement('label');
+        //label.htmlFor = fieldName;
+        label.innerHTML = fieldName;
+        parent.appendChild(label);
+    }
     return element;
 }
 
+function createMaterializeTabs(parent, names){
+    let tabContainer = document.createElement('div')
+    tabContainer.classList.add('row')
+    parent.appendChild(tabContainer)
+
+    let materializeColS12 = document.createElement('div')
+    materializeColS12.classList.add('col', 's12');
+    tabContainer.appendChild(materializeColS12);
+
+    let materializeULTabs = document.createElement('ul')
+    materializeULTabs.classList.add('tabs')
+    materializeColS12.appendChild(materializeULTabs)
+
+    for(let elem of names){
+        let tab = document.createElement('li')
+        tab.classList.add('tab','col','s3')
+        materializeULTabs.appendChild(tab)
+
+        let a = document.createElement('a')
+        a.href = '#' + elem.replace(/\s+/g, '') // remove spaces if there are any
+        a.innerHTML = elem
+        tab.appendChild(a)
+    }
+
+    materializeULTabs.childNodes[0].childNodes[0].classList.add('active'); // set first tab to active - <a class="active" href="#test2">Test 2</a>
+
+    let tabContentDivs = {}
+    tabContentDivs['container'] = materializeULTabs;
+    for(let elem of names){
+        let tabContent = document.createElement('div')
+        tabContent.id = elem.replace(/\s+/g, '')
+        tabContent.classList.add('col', 's12')
+        tabContainer.appendChild(tabContent)
+        tabContentDivs[elem] = tabContent
+
+    }
+
+    return tabContentDivs;
+    
+}

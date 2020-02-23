@@ -94,7 +94,7 @@ app_pane.prototype.set_location = function(){
     this.DOM.style.top = adjustedY + 'px';
 }
 
-app_pane.prototype.render = function(){
+app_pane.prototype.render = function(parentDOM){
     if (this.type == 'popup menu'){
         //render container
         let menuContainer = document.createElement('div');
@@ -121,7 +121,7 @@ app_pane.prototype.render = function(){
             
         }
     } else if(this.type == 'map object details'){
-        this.DOM = this.buildDetailsDialog();
+        this.DOM = this.buildDetailsDialog(parentDOM);
         return this.DOM;
     }
 }
@@ -130,11 +130,12 @@ app_pane.prototype.removeFromDOM = function(){
     this.parentDOM.removeChild(this.DOM);
 }
 
-app_pane.prototype.buildDetailsDialog = function(){
+app_pane.prototype.buildDetailsDialog = function(parentDOM){
     let caller = this.callingElement.associatedEquipment;
 
     let dialog = document.createElement('div');
     dialog.classList.add('map_object_details_dialog');
+    parentDOM.appendChild(dialog);
 
     // handle events on the dialog to prevent from bubbling
     dialog.addEventListener('pointerdown', function(ev){
@@ -157,9 +158,13 @@ app_pane.prototype.buildDetailsDialog = function(){
         this.DOM.parentNode.removeChild(this.DOM);
     }.bind(this))
 
+    // Materialize tabs
     let fieldsContainer = document.createElement('div');
     
+    let tabs = ['part info','install info', 'options']
+    let tabContentDivs = createMaterializeTabs(fieldsContainer,tabs) // tabContentDivs['container'] - whole element, tabContentDivs[tabs[0]] - tab 1 ...
 
+    
     for(let k in caller.htmlElements){
         let dialogElement = caller.htmlElements[k];
         
@@ -177,8 +182,8 @@ app_pane.prototype.buildDetailsDialog = function(){
 
             //fieldsContainer.appendChild(domElement);
         } else {
-            //append all others to fieldsContainer
-            let domElement = renderHTMLElement(fieldsContainer, dialogElement.value, dialogElement.htmlElement, id, '', dialogElement.display, valueOptions, true)
+            //append all others to tab 1
+            let domElement = renderHTMLElement(tabContentDivs[tabs[0]], dialogElement.value, dialogElement.htmlElement, id, '', dialogElement.display, valueOptions, true)
             //fieldsContainer.appendChild(domElement);
 
             if(dialogElement.hasOwnProperty('subElements')){
@@ -205,12 +210,40 @@ app_pane.prototype.buildDetailsDialog = function(){
     }
 
     for(let k in caller.additionalParameters){
-        let paramerter = caller.additionalParameters[k];
+        let parameter = caller.additionalParameters[k];
         let id = 'map_object_details_dialog__additionalParameters_' + k;
-        let value = paramerter.value;
-        let domElement = renderHTMLElement(fieldsContainer, value, paramerter.htmlElement, id, '', parameter.display, parameter.options, true);
+        let value = parameter.value;
+        let elementDIV = document.createElement('div')
+        elementDIV.classList.add('input-field', 'col', 's12')
+        tabContentDivs[tabs[1]].appendChild(elementDIV); // append to tab 2
+
+        let domElement = renderHTMLElement(elementDIV, parameter.display, parameter.htmlElement, id, '', value, parameter.options, true);
+        parameter.DOM = domElement;
+
+        elementDIV.addEventListener('focusout', function(ev){            
+            if(parameter.htmlElement == 'select'){
+                parameter.value = parameter.DOM.value;
+                console.log(parameter.display + '=' + parameter.value);
+            }            
+        }.bind(parameter))
+
+        
+
     }
     dialog.appendChild(fieldsContainer);
     
+    //Materialize init
+    var elems = document.querySelectorAll('select');
+    let options= {}
+    var instances = M.FormSelect.init(elems, options);
+    options = {
+        'duration': 300,
+        'onShow': null,
+        'swipeable': true,
+        'responsiveTreshold': 300
+    }
+   var tabsInstance = M.Tabs.init(tabContentDivs['container'],options)
+   tabsInstance.updateTabIndicator();
+    //M.AutoInit();
     return dialog;
 }

@@ -270,7 +270,7 @@ class Camera extends Equipment {
     // }
 
     constructor() {
-      
+      this.equipmentType = 'camera';
       let cameraNumber = equipmentCounts.increaseAndGetCount('camera');//Camera.setCameraNumber();
       let name = 'Camera ' + cameraNumber;//Camera.setCameraName(cameraNumber);  
       let additionalStatusOptions = ['adjusted','programmed'];
@@ -287,28 +287,32 @@ class Camera extends Equipment {
               display : 'tech',
               value : '',
               options : ['IP','TVI','Analog'],
-              htmlElement : 'select'
+              htmlElement : 'select',
+              DOM: null
           },
 
           resolution : {
               display : 'resolution',
               value : '',
               options : ['1', '2', '3', '4', '5', '6', '8', '12', '16', '28', '30'],
-              htmlElement : 'select'
+              htmlElement : 'select',
+              DOM: null
           },
 
           formFactor : {
               display : 'form factor',
               value : '',
               options : ['bullet', 'dome', 'multisensor', 'fisheye', 'full body'],
-              htmlElement : 'select'
+              htmlElement : 'select',
+              DOM: null
           },
 
           power : {
               display : 'power',
               value : '',
               options : ['POE','12VDC', '24VDC','24VAC'],
-              htmlElement : 'select'
+              htmlElement : 'select',
+              DOM: null
           }
       }
     
@@ -378,6 +382,7 @@ class DVR extends Equipment {
 
         super('video', 'DVR', name, additionalStatusOptions);  
 
+        this.equipmentType = 'camera';
         this.equipmentNumber = dvrNumber;
         this.additionalStatusOptions = additionalStatusOptions;
         this._channels = '';
@@ -425,6 +430,7 @@ class NVR extends Equipment {
 
         super('video', 'NVR', name, additionalStatusOptions);  
         
+        this.equipmentType = 'NVR';
         this.equipmentNumber = nvrNumber;
         this.additionalStatusOptions = additionalStatusOptions;
         this._channels = '';
