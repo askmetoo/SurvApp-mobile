@@ -24,14 +24,35 @@ function general_validation(obj){
     return false;
 }
 
-function renderHTMLElement(parent, fieldName, htmlTag, id, domClass, value, valueOptions, label){
+function renderHTMLElement(parent, fieldName, htmlTag, htmlTagOptions, id, domClass, value, valueOptions, label, editable){
     
     let element = document.createElement(htmlTag);
-    if(general_validation(domClass)){
-        element.classList.add(domClass);
+
+    if(editable === false){
+        element.disabled = true;
     }
-    element.id = id;
-    element.name = fieldName;
+
+    if(general_validation(domClass)){
+        if(domClass.split(' ').length>0)
+        {
+            let classes = domClass.split(' ');
+            for(let elem of classes){
+                element.classList.add(elem)
+            }
+        } else {
+            element.classList.add(domClass);
+        } 
+    }
+
+
+    if(general_validation(id)){
+        element.id = id;
+    }
+    
+    if(general_validation(fieldName)){
+        element.name = fieldName;
+    }
+  
     if(/*general_validation(value)*/true){
         switch (htmlTag){
             case 'div':
@@ -43,27 +64,58 @@ function renderHTMLElement(parent, fieldName, htmlTag, id, domClass, value, valu
             case 'h2':
             case 'h3':   
             case 'p': 
-                element.innerHTML = value;
-                break;  
-            case 'select':
-                for(let elem of valueOptions){
-                    let option = document.createElement('option');
-                    option.text = elem;
-                    option.value = elem;
-                    element.appendChild(option);
+            case 'i':   
+                if(general_validation(value)){
+                    element.innerHTML = value;
+                }                
+                break; 
+            case 'input':
+                    if(general_validation(value)){
+                        element.value = value;
+                    } 
+                    element.type = htmlTagOptions;     
                     
+                    break; 
+            case 'textarea':
+                    if(general_validation(value)){
+                        element.value = value;
+                    }   
+                    element.classList.add('materialize-textarea');             
+                break;     
+                
+            case 'select':
+                if(general_validation(valueOptions)){
+                    for(let elem of valueOptions){
+                        let option = document.createElement('option');
+                        option.text = elem;
+                        option.value = elem;
+                        element.appendChild(option);                    
+                    }                    
                 }
-                element.value = value;
+                if(general_validation(value)){
+                    element.value = value;
+                }                
                 break;
         }
     }
 
     parent.appendChild(element);
+    
+    
+
     if(label){
-        let label = document.createElement('label');
+        let htmlLabel = document.createElement('label');
         //label.htmlFor = fieldName;
-        label.innerHTML = fieldName;
-        parent.appendChild(label);
+        htmlLabel.innerHTML = label;
+        htmlLabel.htmlFor = element.name;
+        if(htmlTag == 'input'){
+            htmlLabel.classList.add('active')
+        }
+        parent.appendChild(htmlLabel);
+    }
+
+    if(htmlTag == 'input'){
+        M.updateTextFields();      
     }
     return element;
 }

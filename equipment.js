@@ -1,4 +1,24 @@
 
+let manufacturers = {
+    camera: ['HIK Vision', 'Avigilon', 'Hanwha', 'Axis'],
+    DVR: ['HIK Vision'],
+    NVR: ['HIK Vision', 'Avigilon'],
+    VMS: ['Avigilon', 'Digital Watchdog', 'Exacq Vision'],
+    accessControl: ['Roslarre', 'Avigilon', 'Brivo'],
+    alarm: ['Honeywell', 'DSC'],
+    VSaaS: ['Eagle Eye Networks']
+}
+
+let vendors = {
+    camera: ['ADI', 'Avigilon', 'GNS'],
+    DVR: ['ADI', 'GNS'],
+    NVR: ['ADI', 'GNS'],
+    VMS: ['ADI','Avigilon'],
+    accessControl: ['ADI', 'GNS', 'Avigilon'],
+    alarm: ['ADI'],
+    VSaaS: ['ADI', 'Eagle Eye Networks']
+    
+}
 
 document.getElementById("app_message").innerHTML = 'equipment.js loaded';
 
@@ -57,139 +77,311 @@ var equipmentCounts = new function (){
 
 class Equipment {    
     constructor(type='', subType='',name='', statusOptions) {
-      this.name = name;
-      this.type = type;
-      this.subType = subType;
-      this._manufacturer = 'not selected';
-      this.manufacturerOptions = [];
-      this._model = '';
-      this._price = '';
-      this._currentStatus = 'not started';
-      this.statusDateAndTime = new Date();
-      this.statusOptions = ['not started', 'wired', 'installed', 'completed'].concat(statusOptions);
-      this.statusNote = '';
-      this.statusHistory = []; // status1: {dateTime, status, statusNote, user}
-    //   this._installedBy = '';
-    //   this._installedDateTime = '';   
-    
-      
-      this.projectSpecificInstructions = 'default instructions'; // this is used to set instructions for this equipment in this project i.e. how to wire, or where exactly to install
-      this.notes = {}; 
-      this.noteLevelOptions = ['survey', 'sales', 'install', 'completion']
-    //   note1:{
-    //       level: survey, sales, install, completion
-    //       note,
-    //       dateTime,
-    //       user
-    //   };
-      this.canvasNotes = {};
+        this.name = name;
+        this.type = type;
+        this.subType = subType;
+        this._manufacturer = 'not selected';
+        this.manufacturerOptions = [];
+        this.vendor = 'not selected';
+        this.vendorOptions = [];
+        this._model = '';
+        this._price = '';
+        this._currentStatus = 'not started';
+        this.statusDateAndTime = new Date();
+        this.statusOptions = ['not started', 'wired', 'installed', 'completed'].concat(statusOptions);
+        this.statusNote = '';
+        this.statusHistory = []; // status1: {dateTime, status, statusNote, user}
+        //   this._installedBy = '';
+        //   this._installedDateTime = '';   
         
-      this.htmlElements = {
-        name: {
-            htmlElement: 'h3',
-            editable: true,
-            value: 'name',
-            display: 'name',
-            header: true
-        },
-        // type: {
-        //     htmlElement: 'p',
-        //     editable: false,
-        //     value: 'type'
-        // },
-        // subType: {
-        //   htmlElement: 'p',
-        //   editable: false,
-        //   value: 'subType'
-        // },
-        manufacturer: {
-          htmlElement: 'select',
-          editable: true,
-          choices:  this.manufacturerOptions,
-          value: '_manufacturer',
-          display: 'manufacturer'
-        },
-        model: {
-            htmlElement: 'input',
-            editable: true,
-            value: '_model',
-            display: 'model'
-        },
-        price: {
-            htmlElement: 'input',
-            editable: true,
-            value: '_price',
-            display: 'name'
-        },
-        currentStatus: {
-            htmlElement: 'select',
-            editable: true,
-            choices: this.statusOptions,
-            value: '_currentStatus',
-            display: 'current status'
-        },
-        statusNote: {
-          htmlElement: 'textarea',
-          editable: true,
-          value: 'statusNote',
-          display: 'status note'
-        },
-        statusHistory: {
-          htmlElement: 'div',
-          editable: false,
-          value: 'statusHistory',
-          display: 'status history',
-          subElements: {
-              element1: {
-                  htmlElement: 'span',
-                  value: 'user',                    
-              }, 
-              element2: {
-                  htmlElement: 'span',
-                  value: 'dateTime',
-              },
-              element3: {
-                  htmlElement: 'p',
-                  value: 'status'
-              },
-              element4: {
-                  htmlElement: 'p',
-                  value: 'statusNote'
-              }
-          }
-        },
-        projectSpecificInstructions: {
-            htmlElement: 'p',
-            value: 'projectSpecificInstructions',
-            display: 'project specific instructions'
-        },
-        notes: {
-            htmlElement: 'div',
-            editable: false,
-            value: 'notes',
-            display: 'notes',
-            subElements: {
-                element1: {
-                    htmlElement: 'p',
-                    value: 'level'
+        
+        this.projectSpecificInstructions = 'default instructions'; // this is used to set instructions for this equipment in this project i.e. how to wire, or where exactly to install
+        this.notes = {}; 
+        this.noteLevelOptions = ['survey', 'sales', 'install', 'completion']
+        //   note1:{
+        //       level: survey, sales, install, completion
+        //       note,
+        //       dateTime,
+        //       user
+        //   };
+        this.canvasNotes = {};
+
+        this.equipmentNumber = 0;
+        this.parameters = {
+            'name' : {
+                header: true,
+                display: 'name',
+                value: name,
+                htmlElement: 'h3',
+                DOM: null,
+                show: true,
+                editable: true
+            },
+
+            'type': {
+                display: 'type',
+                value: type,
+                htmlElement: 'input',
+                htmlElementOption: 'text',
+                wrapperDOMClass: 'input-field col s6',
+                DOM: null,
+                show: true,
+                editable: false,
+                tab: 1,
+                row: 1
+            },
+
+            'subType': {
+                display: 'subtype',
+                value: subType,
+                htmlElement: 'input',
+                htmlElementOption: 'text',
+                wrapperDOMClass: 'input-field col s6',
+                DOM: null,
+                show: true,
+                editable: false,
+                tab: 1,
+                row: 1
+            },
+
+            'vendor': {
+                display: 'vendor',
+                value: '',
+                options: [],
+                htmlElement: 'select',
+                DOM: null,
+                show: true,
+                editable: true,
+                tab: 1
+            },
+
+            'manufacturer': {
+                display: 'subtype',
+                value: '',
+                options: [],
+                htmlElement: 'select',
+                DOM: null,
+                show: true,
+                editable: true,
+                tab: 1
+            },
+
+            'model': {
+                display: 'model',
+                value: '',
+                options: [],
+                htmlElement: 'input',
+                htmlElementOption: 'text',
+                DOM: null,
+                show: true,
+                editable: true,
+                tab: 1
+            },
+
+            'status': {
+                display: 'status',
+                value: 'not started',
+                options: ['not started', 'installed', 'completed'].concat(statusOptions),
+                user: '',
+                htmlElement: 'select',
+                DOM: null,
+                show: true,
+                editable: true,
+                tab: 0
+            },
+
+            'statusNote': {
+                display: 'status note',
+                value: '',
+                dateTime: '',
+                htmlElement: 'textarea',
+                DOM: null,
+                show: true,
+                editable: true,
+                tab: 0
+            },
+
+            'statusHistory': {
+                display: 'status history',
+                value: {},                
+                htmlElement: 'custom',
+                DOM: null,
+                show: true,
+                editable: false,
+                tab: 0
+            },
+
+            'note': {
+                display: 'notes',
+                value: {},   
+                dateTime: '',             
+                htmlElement: 'textarea',
+                DOM: null,
+                show: true,
+                editable: true,
+                tab: 0
+            },
+
+            'noteHistory': {
+                display: 'note history',
+                value: {},   
+                dateTime: '',             
+                htmlElement: 'custom',
+                DOM: null,
+                show: true,
+                editable: false,
+                tab: 0
+            },
+
+            'directions': {
+                display: 'directions',
+                value: '',            
+                htmlElement: 'p',
+                DOM: null,
+                show: true,
+                editable: false,
+                tab: 0
+            },
+
+            'checkList': {
+                display: 'check list',
+                value: {
+                    // step1 : {
+                    //     type: '', // wiring, installation, programming, troubleshooting 
+                    //     name: '',
+                    //     directions: '',
+                    //     images: [],
+                    // }
                 },
-                element2: {
-                    htmlElement: 'span',
-                    value: 'user'
-                },
-                element3: {
-                    htmlElement: 'span',
-                    value: 'dateTime',
-                },
-                element4: {
-                    htmlElement: 'p',
-                    value: 'note'
-                }
+                htmlElement: 'custom',
+                DOM: null,
+                show: true,
+                editable: false,
+                tab: 2
+
+
             }
+
+            
+
+
+
+            
+
+            
+
+
 
 
         }
-    }
+        this.htmlElements = {
+            name: {
+                htmlElement: 'h3',
+                editable: true,
+                value: 'name',
+                display: 'name',
+                header: true
+            },
+            // type: {
+            //     htmlElement: 'p',
+            //     editable: false,
+            //     value: 'type'
+            // },
+            // subType: {
+            //   htmlElement: 'p',
+            //   editable: false,
+            //   value: 'subType'
+            // },
+            manufacturer: {
+            htmlElement: 'select',
+            editable: true,
+            choices:  this.manufacturerOptions,
+            value: '_manufacturer',
+            display: 'manufacturer'
+            },
+            model: {
+                htmlElement: 'input',
+                editable: true,
+                value: '_model',
+                display: 'model'
+            },
+            price: {
+                htmlElement: 'input',
+                editable: true,
+                value: '_price',
+                display: 'name'
+            },
+            currentStatus: {
+                htmlElement: 'select',
+                editable: true,
+                choices: this.statusOptions,
+                value: '_currentStatus',
+                display: 'current status'
+            },
+
+            statusNote: {
+            htmlElement: 'textarea',
+            editable: true,
+            value: 'statusNote',
+            display: 'status note'
+            },
+
+            statusHistory: {
+            htmlElement: 'div',
+            editable: false,
+            value: 'statusHistory',
+            display: 'status history',
+            subElements: {
+                element1: {
+                    htmlElement: 'span',
+                    value: 'user',                    
+                }, 
+                element2: {
+                    htmlElement: 'span',
+                    value: 'dateTime',
+                },
+                element3: {
+                    htmlElement: 'p',
+                    value: 'status'
+                },
+                element4: {
+                    htmlElement: 'p',
+                    value: 'statusNote'
+                }
+            }
+            },
+            projectSpecificInstructions: {
+                htmlElement: 'p',
+                value: 'projectSpecificInstructions',
+                display: 'project specific instructions'
+            },
+            notes: {
+                htmlElement: 'div',
+                editable: false,
+                value: 'notes',
+                display: 'notes',
+                subElements: {
+                    element1: {
+                        htmlElement: 'p',
+                        value: 'level'
+                    },
+                    element2: {
+                        htmlElement: 'span',
+                        value: 'user'
+                    },
+                    element3: {
+                        htmlElement: 'span',
+                        value: 'dateTime',
+                    },
+                    element4: {
+                        htmlElement: 'p',
+                        value: 'note'
+                    }
+                }
+
+
+            }
+        }
     }
 
     setStatus(status){
@@ -270,7 +462,7 @@ class Camera extends Equipment {
     // }
 
     constructor() {
-      this.equipmentType = 'camera';
+      //this.equipmentType = 'camera';
       let cameraNumber = equipmentCounts.increaseAndGetCount('camera');//Camera.setCameraNumber();
       let name = 'Camera ' + cameraNumber;//Camera.setCameraName(cameraNumber);  
       let additionalStatusOptions = ['adjusted','programmed'];
@@ -279,16 +471,23 @@ class Camera extends Equipment {
 
       this.equipmentNumber = cameraNumber;
       this.additionalStatusOptions = additionalStatusOptions;
-      this.manufacturerOptions = ['HIK', 'HIK OEM', 'Avigilon', 'Hanwha'];
-      this.setHTMLManufacturerChoices(this.manufacturerOptions);
+      //this.manufacturerOptions = manufacturers.camera;
+      //this.setHTMLManufacturerChoices(this.manufacturerOptions);
+      //this.vendor = 
+      
 
-      this.additionalParameters = {
+      this.parameters.vendor.options = vendors.camera;
+      this.parameters.manufacturer.options = manufacturers.camera;
+
+      this.additionalParameters = {         
+
           technology : {
               display : 'tech',
               value : '',
               options : ['IP','TVI','Analog'],
               htmlElement : 'select',
-              DOM: null
+              DOM: null,
+              tab: 1
           },
 
           resolution : {
@@ -296,7 +495,8 @@ class Camera extends Equipment {
               value : '',
               options : ['1', '2', '3', '4', '5', '6', '8', '12', '16', '28', '30'],
               htmlElement : 'select',
-              DOM: null
+              DOM: null,
+              tab: 1
           },
 
           formFactor : {
@@ -304,7 +504,8 @@ class Camera extends Equipment {
               value : '',
               options : ['bullet', 'dome', 'multisensor', 'fisheye', 'full body'],
               htmlElement : 'select',
-              DOM: null
+              DOM: null,
+              tab: 1
           },
 
           power : {
@@ -312,9 +513,12 @@ class Camera extends Equipment {
               value : '',
               options : ['POE','12VDC', '24VDC','24VAC'],
               htmlElement : 'select',
-              DOM: null
+              DOM: null,
+              tab: 1
           }
       }
+
+      this.parameters = {...this.parameters, ...this.additionalParameters}
     
     //   this._technology = '';   //TVI,IP
     //   this.technologyOptions = ['IP','TVI','Analog'];

@@ -116,15 +116,56 @@
     /* font-size: 0.5em; */
 } 
 
+/* header container */
+.map_object_details_dialog>div:first-of-type{
+    position: relative;
+    display: block;
+    background-color: rgb(83, 83, 83);
+    height: 4rem; 
+    width: 100%;
+    padding: 12px;
+    
+}
+
+.map_object_details_dialog h3{
+    display: inline-block;
+    /* background-color: gray; */
+    color: white;
+    margin: 0;
+    /* padding: 20px; */
+    font-weight: normal;
+    font-size: large;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+/* header edit icon */
+.map_object_details_dialog>div i {
+    color: white;
+    background-color: rgba(0, 0, 0, 0);
+    position: relative;
+    /* padding-top: 5px; */
+    /* margin-left: 20px; */
+    vertical-align: middle;
+    display: inline-block;
+    margin-left:30px;
+    font-weight: initial;
+}
+
 /* close button */
 .map_object_details_dialog>span{
     position: absolute;
-    font-size: x-large;
+    font-size: 3rem;
     right: 0px;
     top:-4px;
     color: white;
-    padding: 0 5px;
+    padding: 0 10px;
     margin-left: 0;
+    margin: 0;
+    z-index: 20;
+    vertical-align: middle;
 }
 
 .map_object_details_dialog>span:hover{
@@ -132,7 +173,8 @@
 }
 
 /* fields container */
-.map_object_details_dialog>div:first-of-type{
+.map_object_details_dialog>div:nth-of-type(2){
+    position: relative;
     margin:0px;
     overflow: scroll;
     height: 92%;
@@ -145,14 +187,7 @@
 }
 
 
-.map_object_details_dialog h3{
-    background-color: gray;
-    color: white;
-    margin: 0;
-    padding: 10px;
-    font-weight: normal;
-    font-size: large;
-}
+
 
 /* .map_object_details_dialog label{
     font-weight: normal;

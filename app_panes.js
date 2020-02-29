@@ -150,7 +150,7 @@ app_pane.prototype.buildDetailsDialog = function(parentDOM){
     
     //define dialog close button
     let closeButton = document.createElement('span');
-    closeButton.innerHTML = 'x';
+    closeButton.innerHTML = '&times;';
     closeButton.ID = 'dialog_close_button';
     dialog.appendChild(closeButton);
     closeButton.addEventListener('pointerup', function(ev){
@@ -161,53 +161,105 @@ app_pane.prototype.buildDetailsDialog = function(parentDOM){
     // Materialize tabs
     let fieldsContainer = document.createElement('div');
     
-    let tabs = ['part info','install info', 'options']
+    let tabs = ['install','info', 'checklist', 'options']
     let tabContentDivs = createMaterializeTabs(fieldsContainer,tabs) // tabContentDivs['container'] - whole element, tabContentDivs[tabs[0]] - tab 1 ...
 
-    
-    for(let k in caller.htmlElements){
-        let dialogElement = caller.htmlElements[k];
-        
+
+    let rowDOMs = {}; // for rendering few fields in one row
+    for(let k in caller.parameters){
+        let parameter = caller.parameters[k];
         let id = 'map_object_details_dialog__' + k;
-        let value = caller[dialogElement.value];
-        if(dialogElement.hasOwnProperty('choices')){
-            valueOptions = dialogElement.choices;
-        } else {
-            valueOptions = ['no options yet'];
-        }
+        let value = parameter.value;
+        let valueOptions = parameter.hasOwnProperty('options') ? parameter.options : null;
+        let label = parameter.hasOwnProperty('display') ? parameter.display : null;
+        let visible = parameter.show;
+        let editable = parameter.editable;
+        let htmlTag = parameter.htmlElement;
+        let htmlTagOption = parameter.hasOwnProperty('htmlElementOption') ? parameter.htmlElementOption : '';
+        let wrapperDOMClass = parameter.hasOwnProperty('wrapperDOMClass') ? parameter.wrapperDOMClass : 'input-field col s12';
 
-        if(dialogElement.hasOwnProperty('header')){ 
-            //append header to dialog
-            let domElement = renderHTMLElement(dialog, dialogElement.value, dialogElement.htmlElement, id, '', dialogElement.display, valueOptions, false)
-
-            //fieldsContainer.appendChild(domElement);
-        } else {
-            //append all others to tab 1
-            let domElement = renderHTMLElement(tabContentDivs[tabs[0]], dialogElement.value, dialogElement.htmlElement, id, '', dialogElement.display, valueOptions, true)
-            //fieldsContainer.appendChild(domElement);
-
-            if(dialogElement.hasOwnProperty('subElements')){
-                //let subElementsContainer = document.createElement('div');
-                if(caller[k].length>0){ // if caller[k] object i.e. statusHistory has any subElements
-                    for(let arrElement of caller[k]){ // i.e. statusHistory element which is an object containing elements describing 1 status entry
-                        for(let j in dialogElement.subElements){  // go over fields in subElements     
-                            let id = 'map_object_details_dialog__' + k + '__' + dialogElement.subElements[j].value;
-                            let value = arrElement[dialogElement.subElements[j].value]
-                            let subElement = renderHTMLElement(domElement, dialogElement.value, dialogElement.subElements[k], id, '', dialogElement.name, '')
-                            //domElement.appendChild(subElement);
-                        }
-                    }
-                } else { // no subElements yet
-                    //let subElementsContainer = document.createElement('div');
-                   // subElementsContainer.innerHTML = '<span>nothig to display yet...</span>'
-                    //domElement.appendChild(subElementsContainer);
-                    domElement.innerHTML = 'nothig to display yet...'
+        if(parameter.hasOwnProperty('header')){
+            let headerContainer = renderHTMLElement(dialog, '', 'div', '', '', '', '', '', '')
+            let header = renderHTMLElement(headerContainer, k, parameter.htmlElement, '', id, '', value, valueOptions, '')
+            let edit = renderHTMLElement(headerContainer, '', 'i', '', id + '__edit', 'small material-icons', 'edit', '', '')
+            edit.addEventListener('pointerdown', function(ev){
+                let newName = prompt('Enter new name: ');
+                if(newName == ''){
+                    alert('Name can\'t be empty!');
+                } else {
+                    header.innerHTML = newName;
+                    caller.parameters.name.value = newName;
                 }
-                //domElement.appendChild(subElementsContainer);
-            }
+                
+            }.bind(caller))
+            continue;
         }
         
+        // next if is for rendering few fields in one row if the parameter.row is defined
+        let htmlWrapperDivRow = null;
+        if(parameter.hasOwnProperty('row'))
+        {
+            if (general_validation(rowDOMs[parameter.row])){
+                htmlWrapperDivRow = rowDOMs[parameter.row];
+            } else{
+                htmlWrapperDivRow = renderHTMLElement(tabContentDivs[tabs[parameter.tab]], '', 'div', '', '', 'row', '', '', '','');
+                rowDOMs[parameter.row] = htmlWrapperDivRow;
+            }
+             
+        } else {
+            htmlWrapperDivRow = renderHTMLElement(tabContentDivs[tabs[parameter.tab]], '', 'div', '', '', 'row', '', '', '','');
+        }
+
+        let htmlWrapperDivInputField = renderHTMLElement(htmlWrapperDivRow, '', 'div', '', '', wrapperDOMClass, '', '', '','');
+        let htmlElementDOM = renderHTMLElement(htmlWrapperDivInputField, k, htmlTag, htmlTagOption, id, 'validate', value, valueOptions, label, editable);
+        parameter.DOM = htmlElementDOM;
+        
+        //renderHTMLElement(parent, fieldName, htmlTag, id, domClass, value, valueOptions, label){
+
     }
+    // for(let k in caller.htmlElements){
+    //     let dialogElement = caller.htmlElements[k];
+        
+    //     let id = 'map_object_details_dialog__' + k;
+    //     let value = caller[dialogElement.value];
+    //     if(dialogElement.hasOwnProperty('choices')){
+    //         valueOptions = dialogElement.choices;
+    //     } else {
+    //         valueOptions = ['no options yet'];
+    //     }
+
+    //     if(dialogElement.hasOwnProperty('header')){ 
+    //         //append header to dialog
+    //         let domElement = renderHTMLElement(dialog, dialogElement.value, dialogElement.htmlElement, id, '', dialogElement.display, valueOptions, false)
+
+    //         //fieldsContainer.appendChild(domElement);
+    //     } else {
+    //         //append all others to tab 1
+    //         let domElement = renderHTMLElement(tabContentDivs[tabs[0]], dialogElement.value, dialogElement.htmlElement, id, '', dialogElement.display, valueOptions, true)
+    //         //fieldsContainer.appendChild(domElement);
+
+    //         if(dialogElement.hasOwnProperty('subElements')){
+    //             //let subElementsContainer = document.createElement('div');
+    //             if(caller[k].length>0){ // if caller[k] object i.e. statusHistory has any subElements
+    //                 for(let arrElement of caller[k]){ // i.e. statusHistory element which is an object containing elements describing 1 status entry
+    //                     for(let j in dialogElement.subElements){  // go over fields in subElements     
+    //                         let id = 'map_object_details_dialog__' + k + '__' + dialogElement.subElements[j].value;
+    //                         let value = arrElement[dialogElement.subElements[j].value]
+    //                         let subElement = renderHTMLElement(domElement, dialogElement.value, dialogElement.subElements[k], id, '', dialogElement.name, '')
+    //                         //domElement.appendChild(subElement);
+    //                     }
+    //                 }
+    //             } else { // no subElements yet
+    //                 //let subElementsContainer = document.createElement('div');
+    //                // subElementsContainer.innerHTML = '<span>nothig to display yet...</span>'
+    //                 //domElement.appendChild(subElementsContainer);
+    //                 domElement.innerHTML = 'nothig to display yet...'
+    //             }
+    //             //domElement.appendChild(subElementsContainer);
+    //         }
+    //     }
+        
+    // }
 
     for(let k in caller.additionalParameters){
         let parameter = caller.additionalParameters[k];
@@ -217,7 +269,7 @@ app_pane.prototype.buildDetailsDialog = function(parentDOM){
         elementDIV.classList.add('input-field', 'col', 's12')
         tabContentDivs[tabs[1]].appendChild(elementDIV); // append to tab 2
 
-        let domElement = renderHTMLElement(elementDIV, parameter.display, parameter.htmlElement, id, '', value, parameter.options, true);
+        let domElement = renderHTMLElement(elementDIV, parameter.display, parameter.htmlElement, parameter.htmlElementOption, id, '', value, parameter.options, true);
         parameter.DOM = domElement;
 
         elementDIV.addEventListener('focusout', function(ev){            
