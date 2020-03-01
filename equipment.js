@@ -107,6 +107,9 @@ class Equipment {
         this.canvasNotes = {};
 
         this.equipmentNumber = 0;
+        this.mapObject = null;
+        this.parentProject = null;
+
         this.parameters = {
             'name' : {
                 header: true,
@@ -149,21 +152,25 @@ class Equipment {
                 value: '',
                 options: [],
                 htmlElement: 'select',
+                wrapperDOMClass: 'input-field col s6',
                 DOM: null,
                 show: true,
                 editable: true,
-                tab: 1
+                tab: 1,
+                row: 2
             },
 
             'manufacturer': {
-                display: 'subtype',
+                display: 'manufacturer',
                 value: '',
                 options: [],
                 htmlElement: 'select',
+                wrapperDOMClass: 'input-field col s6',
                 DOM: null,
                 show: true,
                 editable: true,
-                tab: 1
+                tab: 1,
+                row: 2
             },
 
             'model': {
@@ -187,7 +194,8 @@ class Equipment {
                 DOM: null,
                 show: true,
                 editable: true,
-                tab: 0
+                tab: 0,
+                row: 3
             },
 
             'statusNote': {
@@ -198,22 +206,55 @@ class Equipment {
                 DOM: null,
                 show: true,
                 editable: true,
-                tab: 0
+                tab: 0,
+                row: 3
             },
 
             'statusHistory': {
                 display: 'status history',
-                value: {},                
+                value: [
+                    { // sample note history
+                        user: app.currentUser,
+                        dateTime: formatDateTime(new Date('02/01/20 3:25 pm')),
+                        status: 'started',
+                        note: 'started wiring the camera'
+                    },
+                    {
+                        user: app.currentUser,
+                        dateTime: formatDateTime(new Date('02/03/20 12:10 pm')),
+                        status: 'wired',
+                        note: 'wiring done'
+                    },
+                    {
+                        user: app.currentUser,
+                        dateTime: formatDateTime(new Date('02/04/20 09:30 am')),
+                        status: 'completed',
+                        note: 'camera done and tested'
+                    },
+                    {
+                        user: app.currentUser,
+                        dateTime: formatDateTime(new Date('02/04/20 09:30 am')),
+                        status: 'completed',
+                        note: 'camera done and tested tedjsna.sl;xcmvxlknznxcvb;cxlvbmlkcxvnblxkcmbvlk'
+                    },
+                    {
+                        user: app.currentUser,
+                        dateTime: formatDateTime(new Date('02/04/20 09:30 am')),
+                        status: 'completed',
+                        note: 'camera done and tested'
+                    }
+                ],                
                 htmlElement: 'custom',
                 DOM: null,
                 show: true,
                 editable: false,
-                tab: 0
+                tab: 0,
+                row: 3
             },
 
             'note': {
-                display: 'notes',
-                value: {},   
+                display: 'current note',
+                value: '',   
                 dateTime: '',             
                 htmlElement: 'textarea',
                 DOM: null,
@@ -224,7 +265,33 @@ class Equipment {
 
             'noteHistory': {
                 display: 'note history',
-                value: {},   
+                value: [
+                    { // sample note history
+                        user: app.currentUser,
+                        dateTime: formatDateTime(new Date('02/01/20 3:25 pm')),
+                        note: 'started wiring the camera'
+                    },
+                    {
+                        user: app.currentUser,
+                        dateTime: formatDateTime(new Date('02/03/20 12:10 pm')),
+                        note: 'wiring done'
+                    },
+                    {
+                        user: app.currentUser,
+                        dateTime: formatDateTime(new Date('02/04/20 09:30 am')),
+                        note: 'camera done and tested'
+                    },
+                    {
+                        user: app.currentUser,
+                        dateTime: formatDateTime(new Date('02/04/20 09:30 am')),
+                        note: 'camera done and tested tedjsna.sl;xcmvxlknznxcvb;cxlvbmlkcxvnblxkcmbvlk'
+                    },
+                    {
+                        user: app.currentUser,
+                        dateTime: formatDateTime(new Date('02/04/20 09:30 am')),
+                        note: 'camera done and tested'
+                    }
+                ],                
                 dateTime: '',             
                 htmlElement: 'custom',
                 DOM: null,
@@ -258,179 +325,8 @@ class Equipment {
                 show: true,
                 editable: false,
                 tab: 2
-
-
             }
-
-            
-
-
-
-            
-
-            
-
-
-
-
-        }
-        this.htmlElements = {
-            name: {
-                htmlElement: 'h3',
-                editable: true,
-                value: 'name',
-                display: 'name',
-                header: true
-            },
-            // type: {
-            //     htmlElement: 'p',
-            //     editable: false,
-            //     value: 'type'
-            // },
-            // subType: {
-            //   htmlElement: 'p',
-            //   editable: false,
-            //   value: 'subType'
-            // },
-            manufacturer: {
-            htmlElement: 'select',
-            editable: true,
-            choices:  this.manufacturerOptions,
-            value: '_manufacturer',
-            display: 'manufacturer'
-            },
-            model: {
-                htmlElement: 'input',
-                editable: true,
-                value: '_model',
-                display: 'model'
-            },
-            price: {
-                htmlElement: 'input',
-                editable: true,
-                value: '_price',
-                display: 'name'
-            },
-            currentStatus: {
-                htmlElement: 'select',
-                editable: true,
-                choices: this.statusOptions,
-                value: '_currentStatus',
-                display: 'current status'
-            },
-
-            statusNote: {
-            htmlElement: 'textarea',
-            editable: true,
-            value: 'statusNote',
-            display: 'status note'
-            },
-
-            statusHistory: {
-            htmlElement: 'div',
-            editable: false,
-            value: 'statusHistory',
-            display: 'status history',
-            subElements: {
-                element1: {
-                    htmlElement: 'span',
-                    value: 'user',                    
-                }, 
-                element2: {
-                    htmlElement: 'span',
-                    value: 'dateTime',
-                },
-                element3: {
-                    htmlElement: 'p',
-                    value: 'status'
-                },
-                element4: {
-                    htmlElement: 'p',
-                    value: 'statusNote'
-                }
-            }
-            },
-            projectSpecificInstructions: {
-                htmlElement: 'p',
-                value: 'projectSpecificInstructions',
-                display: 'project specific instructions'
-            },
-            notes: {
-                htmlElement: 'div',
-                editable: false,
-                value: 'notes',
-                display: 'notes',
-                subElements: {
-                    element1: {
-                        htmlElement: 'p',
-                        value: 'level'
-                    },
-                    element2: {
-                        htmlElement: 'span',
-                        value: 'user'
-                    },
-                    element3: {
-                        htmlElement: 'span',
-                        value: 'dateTime',
-                    },
-                    element4: {
-                        htmlElement: 'p',
-                        value: 'note'
-                    }
-                }
-
-
-            }
-        }
-    }
-
-    setStatus(status){
-        if(status in this.statusOptions){
-
-        }
-    }
-  
-    get manufacturer(){
-        return this._manufacturer;
-    }
-    set manufacturer(manufacturer){
-        this._manufacturer = manufacturer;
-    }
-
-
-    get model(){
-        return this._model;
-    }
-    set model(model){
-        this._model = model;
-    }
-
-    get price(){
-        return this._price;
-    }
-    set price(price){
-        this._price = price;
-    }
-
-    get status(){
-        return this._status;
-    }
-    set status(status){
-        this._status = status;
-    }
-
-    get installedBy(){
-        return this._installedBy;
-    }
-    set installedBy(installedBy){
-        this._installedBy = installedBy;
-    }
-
-    get installedDateTime(){
-        return this._installedDateTime;
-    }
-    set installedDateTime(installedDateTime){
-        this._installedDateTime = installedDateTime;
+        }      
     }
 
     setHTMLManufacturerChoices(choices){
@@ -440,29 +336,8 @@ class Equipment {
 }
 
 class Camera extends Equipment {
-    // static _cameraCount;
-    // static installationChecklistCSV;  // this could be used to generate general checklist for particullar equipment install
-
-    // static get cameraCount(){
-    //     return this._cameraCount;
-    // }
-    // static set cameraCount(value){
-    //     this._cameraCount = value;
-    // }
-
-    // static setCameraNumber(){
-    //     if (Camera.cameraCount == undefined){
-    //         Camera.cameraCount = 0;
-    //     }
-    //     return Camera.cameraCount += 1;
-    // }
-
-    // static setCameraName(cameraNumber){
-    //     return 'Camera ' + cameraNumber;
-    // }
-
+   
     constructor() {
-      //this.equipmentType = 'camera';
       let cameraNumber = equipmentCounts.increaseAndGetCount('camera');//Camera.setCameraNumber();
       let name = 'Camera ' + cameraNumber;//Camera.setCameraName(cameraNumber);  
       let additionalStatusOptions = ['adjusted','programmed'];
@@ -471,22 +346,19 @@ class Camera extends Equipment {
 
       this.equipmentNumber = cameraNumber;
       this.additionalStatusOptions = additionalStatusOptions;
-      //this.manufacturerOptions = manufacturers.camera;
-      //this.setHTMLManufacturerChoices(this.manufacturerOptions);
-      //this.vendor = 
-      
-
+     
       this.parameters.vendor.options = vendors.camera;
       this.parameters.manufacturer.options = manufacturers.camera;
 
       this.additionalParameters = {         
 
           technology : {
-              display : 'tech',
+              display : 'technology',
               value : '',
               options : ['IP','TVI','Analog'],
               htmlElement : 'select',
               DOM: null,
+              editable: true,
               tab: 1
           },
 
@@ -496,6 +368,7 @@ class Camera extends Equipment {
               options : ['1', '2', '3', '4', '5', '6', '8', '12', '16', '28', '30'],
               htmlElement : 'select',
               DOM: null,
+              editable:true,
               tab: 1
           },
 
@@ -505,6 +378,7 @@ class Camera extends Equipment {
               options : ['bullet', 'dome', 'multisensor', 'fisheye', 'full body'],
               htmlElement : 'select',
               DOM: null,
+              editable:true,
               tab: 1
           },
 
@@ -514,53 +388,13 @@ class Camera extends Equipment {
               options : ['POE','12VDC', '24VDC','24VAC'],
               htmlElement : 'select',
               DOM: null,
+              editable:true,
               tab: 1
           }
       }
 
       this.parameters = {...this.parameters, ...this.additionalParameters}
-    
-    //   this._technology = '';   //TVI,IP
-    //   this.technologyOptions = ['IP','TVI','Analog'];
-    //   this._megaPixel = '';
-    //   this.megaPixelOptions = ['1', '2', '3', '4', '5', '6', '8', '12', '16', '28', '30'];
-    //   this._housingType = '';
-    //   this.housingTypeOptions = ['bullet', 'dome', 'multisensor', 'fisheye', 'full body']
-    //   this._power = '';      
-    //   this.powerOptions = ['12VDC', '24VDC','24VAC'];
     }
-
-    // static setInstallationChecklist(csv){
-    //     this.installationChecklistCSV = csv;
-    // }
-
-    // get technology() {
-    //     return this._technology;
-    // }  
-    // set technology(technology) {
-    //     this._technology = technology;
-    // }
-
-    // get megaPixel() {
-    //   return this._megaPixel;
-    // }  
-    // set megaPixel(megaPixel) {
-    //   this._megaPixel = megaPixel;
-    // }
-
-    // get housingType() {
-    //     return this._housingType;
-    // }    
-    // set housingType(housingType) {
-    // this._housingType = housingType;
-    // }
-
-    // get power() {
-    //     return this._power;
-    // }    
-    // set power(power) {
-    // this._power = power;
-    // }
 }
 
 class DVR extends Equipment {

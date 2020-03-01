@@ -42,6 +42,7 @@ application.prototype.clearAppMessage = function(){
 function user(fName, lName, email, permissions) {
     this.fName = fName;
     this.lName = lName;
+    this.ID = fName + lName[0];
     this.email = email;
     this.permissions = permissions;
 }
@@ -78,6 +79,18 @@ function project(name, createdBy = 'auto', cretedDate = new Date()){
     this.createdBy = createdBy;
     this.createdDate = cretedDate;
     this.customer = null;
+    this.projectRoles = ['project manager', 'team leader', 'technician','purchasing','account exec','support'];
+    this.projectUsers = {};
+    this.equipment = {};
+    //example
+    // this.projectUsers['MichalWeglowski'] = {
+    //     user: user,
+    //     role: this.projectRoles[0]
+    // }
+    // this.projectUsers['MosesCortez'] = {
+    //     user: user,
+    //     role: this.projectRoles[1]
+    // }
 }
 
 project.prototype.setParentApp = function(app){
@@ -96,6 +109,25 @@ project.prototype.setActiveDesignPlan = function(designPlan){
 
 project.prototype.setCustomer = function(customer){
     this.customer = customer;
+}
+
+project.prototype.addProjectUser = function(user, role){
+    this.projectUsers[user.ID] = {};
+    this.projectUsers[user.ID].user = user;
+    this.projectUsers[user.ID].role = role;
+}
+
+project.prototype.addEquipment = function(equipment){
+    if(!this.equipment.hasOwnProperty(equipment.parameters.type)){
+        this.equipment[equipment.parameters.type] = {};
+    }
+
+    if(!this.equipment[equipment.parameters.type].hasOwnProperty(equipment.parameters.subType)){
+        this.equipment[equipment.parameters.type][equipment.parameters.subType] = {};
+    }
+
+    this.equipment[equipment.parameters.type][equipment.parameters.subType][equipment.parameters.name] = equipment;
+    equipment.parentProject = this;
 }
 
 //it's like a map i.e 1st fl, basement etc
@@ -370,6 +402,8 @@ function mapObject(equipment, ID='', mapIconSrc='', type='', subType='', locatio
     this.name = equipment.name; // for the customer 
     this.type = equipment.type; // Video Surveillance, Access Control etc.
     this.subType = equipment.subType; // camera, dvr, switch, door, motion etc.
+    equipment.mapObject = this;
+    
     this.ID = 'map_object__' + this.type + '__' + this.subType + '__' + equipment.equipmentNumber; // for DOM
     this.mapSymbol = this.subType.substring(0,1).toUpperCase() + equipment.equipmentNumber;
     this.mapNumber = equipment.equipmentNumber;
@@ -742,8 +776,13 @@ mapObject.prototype.popupMenuShow = function(){
 
 mapObject.prototype.setPopupMenuListener = function(){
     for(let k in this.popup_menu.pane_items){
-        let item = this.popup_menu.pane_items[k];
-        item.DOM.addEventListener('pointerdown',listener = (ev) => {
+        let paneItem = this.popup_menu.pane_items[k];
+
+         //stop propagation of pointer down, pointer down propagates and puts objects on the map befor below program react on pointerup, since arrow function is used the scope of vars is the same as in calling function
+        paneItem.DOM.addEventListener('pointerdown', function(ev){
+            ev.stopPropagation();
+        })
+        paneItem.DOM.addEventListener('pointerup',listener = (ev) => {
             ev.stopPropagation();
             //console.log('test')
             

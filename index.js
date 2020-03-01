@@ -10,6 +10,18 @@
 
 
     let projectInstance = new project('firstTestProject');
+    let userMarcin = userInstance;
+    let userMichal = new user('Michal', 'Weglowski', 'michal@skynet4.com','')
+    let userRoman = new user('Roman', 'Wisniewski', 'roman@skynet4.com','')
+    let userMoises = new user('Moises', 'Cortez', 'moises@skynet4.com','')
+    let userBrandon = new user('Brandon', 'Zamora', 'brandon@skynet4.com','')
+
+    projectInstance.addProjectUser(userMarcin, projectInstance.projectRoles[5])
+    projectInstance.addProjectUser(userMichal, projectInstance.projectRoles[0])
+    projectInstance.addProjectUser(userRoman, projectInstance.projectRoles[4])
+    projectInstance.addProjectUser(userMoises, projectInstance.projectRoles[1])
+    projectInstance.addProjectUser(userBrandon, projectInstance.projectRoles[3])
+
 
     app.addProject(projectInstance);
     app.setActiveProject(projectInstance);

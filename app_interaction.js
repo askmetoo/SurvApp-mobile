@@ -148,6 +148,7 @@ function pointerEndHandler(ev){
     //console.dir(ev)
     
     if(activeDesignPlan.touchStartPointers[ev.pointerId]){
+        console.log('pointer up')
         if (quickTapWaitFlag){ // check if the flag for single tap is still set (not set to false by notASingleTap)
             clearTimeout(tapDownWaitFunction);
             tapCounter++;

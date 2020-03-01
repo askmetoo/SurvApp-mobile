@@ -138,7 +138,7 @@
     vertical-align: middle;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 70%;
+    max-width: 60%;
 }
 
 /* header edit icon */
@@ -150,7 +150,7 @@
     /* margin-left: 20px; */
     vertical-align: middle;
     display: inline-block;
-    margin-left:30px;
+    margin:0 10px;
     font-weight: initial;
 }
 
@@ -176,7 +176,8 @@
 .map_object_details_dialog>div:nth-of-type(2){
     position: relative;
     margin:0px;
-    overflow: scroll;
+    overflow-y: hidden;
+    overflow-x: hidden;
     height: 92%;
     width:100%;
     /* color:black; */
