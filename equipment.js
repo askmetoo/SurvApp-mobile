@@ -327,6 +327,41 @@ class Equipment {
                 tab: 2
             }
         }      
+
+        this.photos = [
+            // {
+            //     dateTaken: formatDateTime(new Date('02/04/20 09:30 am')),
+            //     src: '/Images/testImages/1.jpg',
+            // },
+            // {
+            //     dateTaken: formatDateTime(new Date('02/04/20 09:30 am')),
+            //     src: '/Images/testImages/2.jpg',
+            // },
+            // {
+            //     dateTaken: formatDateTime(new Date('02/04/20 09:30 am')),
+            //     src: '/Images/testImages/3.jpg',
+            // },
+            // {
+            //     dateTaken: formatDateTime(new Date('02/04/20 09:30 am')),
+            //     src: '/Images/testImages/4.jpg',
+            // },
+            // {
+            //     dateTaken: formatDateTime(new Date('02/04/20 09:30 am')),
+            //     src: '/Images/testImages/5.jpg',
+            // },
+            // {
+            //     dateTaken: formatDateTime(new Date('02/04/20 09:30 am')),
+            //     src: '/Images/testImages/6.jpg',
+            // },
+            // {
+            //     dateTaken: formatDateTime(new Date('02/04/20 09:30 am')),
+            //     src: '/Images/testImages/7.jpg',
+            // },
+            // {
+            //     dateTaken: formatDateTime(new Date('02/04/20 09:30 am')),
+            //     src: '/Images/testImages/8.jpg',
+            // },
+        ]
     }
 
     setHTMLManufacturerChoices(choices){

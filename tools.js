@@ -76,7 +76,8 @@ function renderHTMLElement(parent, fieldName, htmlTag, htmlTagOptions, id, domCl
                 case 'li':
                 case 'h1':
                 case 'h2':
-                case 'h3':   
+                case 'h3': 
+                case 'h4':  
                 case 'p': 
                 case 'i':   
                     if(general_validation(value)){
@@ -89,7 +90,16 @@ function renderHTMLElement(parent, fieldName, htmlTag, htmlTagOptions, id, domCl
                         } 
                         element.type = htmlTagOptions;     
                         
-                        break; 
+                    break; 
+                case 'a':
+                    if(general_validation(value)){
+                        element.innerHTML = value;
+                    }        
+                    if(general_validation(htmlTagOptions)){
+                        element.href = htmlTagOptions;
+                    }        
+                    
+                    break;
                 case 'textarea':
                         if(general_validation(value)){
                             element.value = value;
@@ -110,8 +120,11 @@ function renderHTMLElement(parent, fieldName, htmlTag, htmlTagOptions, id, domCl
                         element.value = value;
                     }                
                     break;
-    
                 
+                case 'img':
+                    element.src = htmlTagOptions;
+                    element.width = 100;
+                break;
             }
         }
     
@@ -133,12 +146,12 @@ function renderHTMLElement(parent, fieldName, htmlTag, htmlTagOptions, id, domCl
     } else {
         switch (fieldName){
             case 'statusHistory':
-                let statusHistoryDOM = buidHistorySection(fieldName,label,value);
+                let statusHistoryDOM = buildHistorySection(fieldName,label,value);
                 parent.appendChild(statusHistoryDOM);
             break;
 
             case 'noteHistory':
-                let noteHistoryDOM = buidHistorySection(fieldName,label,value);
+                let noteHistoryDOM = buildHistorySection(fieldName,label,value);
                 parent.appendChild(noteHistoryDOM);
             break; 
         }
@@ -155,7 +168,25 @@ function getValueOfHTMLElement(DOM){
     }
 }
 
-function buidHistorySection(type,labelText,values){
+function removeHTMLelement(DOM){
+    DOM.parentNode.removeChild(DOM);
+}
+
+function buildHeader(parent, text, id, options){
+    let headerContainer = renderHTMLElement(parent, '', 'div', '', '', '', '', '', '')
+    let header = renderHTMLElement(headerContainer, '', 'h3', '', id, '', text, '', '')
+    let optionIconsContainer = renderHTMLElement(headerContainer, '', 'div', '', '', '', '', '', '');
+
+    if(options.includes('edit')){
+        let edit = renderHTMLElement(optionIconsContainer, '', 'i', '', id + '__edit', 'small material-icons', 'edit', '', '')
+    }
+    
+    if(options.includes('message')){
+        let message = renderHTMLElement(optionIconsContainer, '', 'i', '',  'map_object_details_dialog__message', 'small material-icons', 'message', '', '')
+    }
+}
+
+function buildHistorySection(type,labelText,values){
     let container = document.createElement('div');
     container.classList.add('history_section');
 

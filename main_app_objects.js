@@ -535,6 +535,12 @@ mapObject.prototype.insertToDesignPlan = function(x,y){
     this.selectObject();
 }
 
+mapObject.prototype.remove = function(){
+    this.popupMenuRemove();
+    removeHTMLelement(this.containerDOM);
+    delete (this.parentDesignPlan.mapObjects[this.ID]);
+}
+
 mapObject.prototype.setClick_TapListener = function(){
     this.elementDOM.addEventListener('pointerdown', function(ev){
         ev.stopPropagation();
@@ -789,14 +795,25 @@ mapObject.prototype.setPopupMenuListener = function(){
             let menuClicked = ev.target.id.split('__')[5];
             console.log(this.name + ': ' + menuClicked + ' clicked' );
 
+            let dialog = null;
             switch (menuClicked){
                 case 'details':
                     console.log('building details dialog')
-                    this.addDetailsPane('map_object_details_pane')
-                    let dialog = this.detailsPane.render(this.parentDesignPlan.parentDOM);
+                    this.detailsPane = this.addDetailsPane('map_object_details_pane')
+                    dialog = this.detailsPane.render(this.parentDesignPlan.parentDOM);
                     //.appendChild(dialog);
+                    break;
                     
-                    
+                case 'photos':
+                    console.log('building photos dialog')
+                    this.photosPane = this.addPhotosPane('map_object_photos_pane')
+                    dialog = this.photosPane.render(this.parentDesignPlan.parentDOM);                    
+                    break;
+
+                case 'delete':
+                    console.log('deleting element')
+                    this.deletionConfirmation = this.addDeletionConfirmationDialog('deletion_confirmation_dialog');
+                    dialog = this.deletionConfirmation.render(this.parentDesignPlan.parentDOM);                    
                     break;
             }
         })
@@ -812,37 +829,23 @@ mapObject.prototype.popupMenuRemove = function(){
         }
        var DOM =  app.activeProject.activeDesignPlan.mapObjectPopupMenu.DOM;
         while (DOM.firstChild) {
-            DOM.removeChild(DOM.firstChild);
+            DOM.removeChild(DOM.firstChild);            
         }
         DOM.parentElement.removeChild(DOM);
+        DOM = null;
+        delete app.activeProject.activeDesignPlan.mapObjectPopupMenu;
     }
    
 }
 
 mapObject.prototype.addDetailsPane = function(domClass){
-    this.detailsPane = new app_pane('map_object_details_pane', 'map object details', this.parentDesignPlan.parentDOM, this, domClass); // (name, DOM_ID)    
+    return new app_pane('map_object_details_pane', 'map object details', this.parentDesignPlan.parentDOM, this, domClass); // (name, DOM_ID)    
 }
 
-mapObject.prototype.addDetailsPaneItem = function(name, value, htmlElement, domID, domClass){
-    this.detailsPane.items = {};
-    this.detailsPane.items[name].name = name;
-    this.detailsPane.items[name].value = value;
-    this.detailsPane.items[name].htmlElement = htmlElement;
-    this.detailsPane.items[name].domID = domID;
-    this.detailsPane.items[name].domClass = domClass;
+mapObject.prototype.addPhotosPane = function(domClass){
+    return new app_pane('map_object_photos_pane', 'map object photos', this.parentDesignPlan.parentDOM, this, domClass); // (name, DOM_ID)    
 }
 
-mapObject.prototype.addDetailsPaneItems = function(){
-    this.addDetailsPaneItem(this.name, this.type, )
+mapObject.prototype.addDeletionConfirmationDialog = function(domClass){
+    return new app_pane('map_object_deletion_pane', 'map object deletion', this.parentDesignPlan.parentDOM, this, domClass); // (name, DOM_ID)    
 }
-
-
-// function camera(name, ID, mapIconSrc, details, model, resolution){
-//     mapObject.call(this, ID, name, mapIconSrc, 'video surveillance', 'camera', null, details)
-//     this.model = model;
-//     this.resolution = resolution;
-//     this.prototype = Object.create(mapObject);
-//     this.type='camera'
-//     console.dir(this)
-// }
-

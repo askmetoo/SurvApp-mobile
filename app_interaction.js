@@ -7,6 +7,8 @@
 document.addEventListener('singleTap', function(ev){
     //console.log('document - singleTap, ev: ' + ev);
     //console.log(ev);
+    
+    
 })
 
 document.addEventListener('doubleTap', function(ev){
@@ -53,6 +55,13 @@ let doubleTapFunction = null;
 app.activeProject.activeDesignPlan.parentDOM.addEventListener('pointerdown', function(ev){
     console.log('app container touch')
     
+    if(general_validation(app.activeProject.activeDesignPlan.activeMapObject)){
+        if(ev.target != app.activeProject.activeDesignPlan.activeMapObject.DOM){
+            app.activeProject.activeDesignPlan.activeMapObject.popupMenuRemove();
+        }
+    }
+    
+
     let activeDesignPlan = app.activeProject.activeDesignPlan;
     activeDesignPlan.touchStartPointers[ev.pointerId] = ev;    
     activeDesignPlan.touchStartPointers[ev.pointerId].starTime = new Date(); // to test for single, double tap

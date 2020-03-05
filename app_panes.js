@@ -108,7 +108,16 @@ app_pane.prototype.render = function(parentDOM){
         for(let k in this.pane_items){
             let itemDOM = document.createElement('li');
             itemDOM.id = this.pane_items[k].ID;
-            itemDOM.innerHTML = this.pane_items[k].name;
+            //itemDOM.innerHTML = this.pane_items[k].name;
+            if(this.pane_items[k].name == 'delete'){
+                //itemDOM.innerHTML = '<a class="waves-effect waves-light btn modal-trigger" href="#modal1" id=' + itemDOM.id + '>delete</a>' ; //materialize requirement for a modal dialog to work to make the trigger like this
+                itemDOM.innerHTML = '<a class="modal-trigger" href="#modal1" id=' + itemDOM.id + '>delete</a>' ; //materialize requirement for a modal dialog to work to make the trigger like this
+                //itemDOM.dataTarget = "modal1"
+                //itemDOM.classList.add("modal-trigger")
+            } else {
+                itemDOM.innerHTML = this.pane_items[k].name;
+            }
+            
             this.pane_items[k].DOM = itemDOM;
             menuList.appendChild(itemDOM);
         }
@@ -123,6 +132,11 @@ app_pane.prototype.render = function(parentDOM){
     } else if(this.type == 'map object details'){
         this.DOM = this.renderDetailsDialog(parentDOM);
         return this.DOM;
+    } else if(this.type == 'map object photos'){
+        this.DOM = this.renderPhotosDialog(parentDOM);
+        return this.DOM;
+    } else if (this.type == 'map object deletion'){
+        this.DOM = this.renderDeletionConfirmationDialog(parentDOM);
     }
 }
 
@@ -154,7 +168,7 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
     let caller = this.callingElement.associatedEquipment;
 
     let dialog = document.createElement('div');
-    dialog.classList.add('map_object_details_dialog');
+    dialog.classList.add('map_object_dialog');
     parentDOM.appendChild(dialog);
 
     // handle events on the dialog to prevent from bubbling
@@ -240,19 +254,25 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
         if(parameter.hasOwnProperty('header')){
             let headerContainer = renderHTMLElement(dialog, '', 'div', '', '', '', '', '', '')
             let header = renderHTMLElement(headerContainer, k, parameter.htmlElement, '', id, '', value, valueOptions, '')
-            let edit = renderHTMLElement(headerContainer, '', 'i', '', id + '__edit', 'small material-icons', 'edit', '', '')
-            let message = renderHTMLElement(headerContainer, '', 'i', '',  'map_object_details_dialog__message', 'small material-icons', 'message', '', '')
+            let optionIconsContainer = renderHTMLElement(headerContainer, '', 'div', '', '', '', '', '', '');
+            let edit = renderHTMLElement(optionIconsContainer, '', 'i', '', id + '__edit', 'small material-icons', 'edit', '', '')
+            let message = renderHTMLElement(optionIconsContainer, '', 'i', '',  'map_object_details_dialog__message', 'small material-icons', 'message', '', '')
             
-            edit.addEventListener('pointerdown', function(ev){
-                let newName = prompt('Enter new name: ');
+            edit.addEventListener('pointerdown', (ev) => {
+                let newName = prompt('Enter new name: ', caller.parameters.name.value);
                 if(newName == ''){
                     alert('Name can\'t be empty!');
                 } else if(newName != null) {
+                    if (newName.length > 11){
+                        header.classList.add('smaller_header_font')
+                    } else {
+                        header.classList.remove('smaller_header_font')
+                    }
                     header.innerHTML = newName;
                     caller.parameters.name.value = newName;
                 }
                 
-            }.bind(caller))
+            })
 
             message.addEventListener('pointerdown', function(ev){
                 this.renderMessageDialog(parentDOM)
@@ -310,4 +330,196 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
    M.updateTextFields();    
     //M.AutoInit();
     return dialog;
+}
+
+app_pane.prototype.renderPhotosDialog = function(parentDOM){
+    let caller = this.callingElement.associatedEquipment;
+
+    let dialog = document.createElement('div');
+    dialog.classList.add('map_object_dialog');
+    parentDOM.appendChild(dialog);
+
+    //header render
+    let thisEquipmentName = caller.parameters.name.value;
+    buildHeader(dialog, thisEquipmentName, thisEquipmentName + '__photo_dialog_header', ['edit', 'message'])
+
+    // handle events on the dialog to prevent from bubbling
+    dialog.addEventListener('pointerdown', function(ev){
+        ev.stopPropagation();
+    })
+    dialog.addEventListener('pointerup', function(ev){
+        ev.stopPropagation();
+    })
+    dialog.addEventListener('pointermove', function(ev){
+        ev.stopPropagation();
+    })
+    
+    //define dialog close button
+    let closeButton = document.createElement('span');
+    closeButton.innerHTML = '&times;';
+    closeButton.ID = 'dialog_close_button';
+    dialog.appendChild(closeButton);
+    
+    closeButton.addEventListener('pointerup', function(ev){
+        ev.stopPropagation();
+
+        this.DOM.parentNode.removeChild(this.DOM);
+    }.bind(this))
+
+    // Materialize tabs
+    let photosContainer = document.createElement('div');
+    
+    let row = renderHTMLElement(photosContainer, '', 'div', '', '', 'row card', '', '', '','');
+    for(let elem of caller.photos){        
+        let wrapperDiv = renderHTMLElement(row, '', 'div', '', '', 'col s4 m2', '', '', '','');
+        let image = renderHTMLElement(wrapperDiv, '', 'img', elem.src, '', 'responsive-img card materialboxed', '', '', '', '');
+    }   
+    dialog.appendChild(photosContainer);
+    
+    let bottomMenu = renderHTMLElement(dialog, '', 'div', '', '', 'dialog_bottom_menu', '', '', '', '');
+    //let takePictureButton = renderHTMLElement(bottomMenu, '', 'i', '', 'mapObject_dialog' + '__take_photo', 'small material-icons', 'camera_alt', '', '')
+
+
+
+    let camera = document.createElement('input')
+    camera.type = 'file';
+    camera.accept = "image/*";
+    camera.capture = "camera";
+    camera.id = 'mapObject_take_photo_button'
+    bottomMenu.appendChild(camera);
+
+    camera.addEventListener('change', (ev) => {
+        // Method 1 - did not do a popup on image click
+        // var reader = new FileReader();
+        // reader.onload = function(ev1){
+        //     let wrapperDiv = renderHTMLElement(row, '', 'div', '', '', 'col s4 m2', '', '', '','');
+        //     let image = renderHTMLElement(wrapperDiv, '', 'img', ev1.target.result, '', 'responsive-img card materialboxed', '', '', '', '');
+        // }
+        // reader.readAsDataURL(camera.files[0]);
+
+        // Method 2
+        let img = URL.createObjectURL(ev.target.files[0]);
+        let wrapperDiv = renderHTMLElement(row, '', 'div', '', '', 'col s4 m2', '', '', '','');
+        let image = renderHTMLElement(wrapperDiv, '', 'img', img, '', 'responsive-img card materialboxed', '', '', '', '');
+
+        caller.photos.push(
+            {
+                dateTaken: formatDateTime(new Date()),
+                src: img
+            }
+        )
+        // reinit materialize
+        var elems = document.querySelectorAll('img.responsive-img');
+        options = {
+            'inDuration': 300,
+            'outDuration': 200,
+            'onOpenStart': null,
+            'onOpenEnd': null,
+            'onCloseStart': null,
+            'onCloseEnd': null
+        }
+        var instances = M.Materialbox.init(elems, options);
+    })
+
+    // takePictureButton.addEventListener('pointerup', (ev)=>{
+    //     let camera = document.createElement('input')
+    //     camera.type = 'file';
+    //     camera.accept = "image/*";
+    //     camera.capture = "camera";
+    //     camera.id = 'mapObject_take_photo_button'
+    //     dialog.appendChild(camera);
+    // })
+
+
+    
+    //Materialize init
+    var elems = document.querySelectorAll('img.responsive-img');
+    options = {
+        'inDuration': 300,
+        'outDuration': 200,
+        'onOpenStart': null,
+        'onOpenEnd': null,
+        'onCloseStart': null,
+        'onCloseEnd': null
+    }
+    var instances = M.Materialbox.init(elems, options);
+    
+   
+    //M.AutoInit();
+    return dialog;
+}
+
+app_pane.prototype.renderDeletionConfirmationDialog = function(parentDOM){
+    let caller = this.callingElement.associatedEquipment;
+
+    // let dialog = document.createElement('div');
+    // dialog.classList.add('map_object_dialog');
+    // parentDOM.appendChild(dialog);
+
+    let thisEquipmentName = caller.parameters.name.value;
+
+    // closeButton.addEventListener('pointerup', function(ev){
+    //     ev.stopPropagation();
+        
+    //     this.DOM.parentNode.removeChild(this.DOM);
+    // }.bind(this))
+
+    let modalContainer = renderHTMLElement(parentDOM, '', 'div', '', 'modal1', 'modal', '', '', '','');
+    let modalContent = renderHTMLElement(modalContainer, '', 'div', '', '', 'modal-content', '', '', '','');
+    let header = renderHTMLElement(modalContent, '', 'p', '', '', '', 'Are you sure you want to delete ' + thisEquipmentName + '?', '', '',''); 
+    let footer = renderHTMLElement(modalContainer, '', 'div', '', '', 'modal-footer', '', '', '',''); 
+    let yesBtn = renderHTMLElement(footer, '', 'a', '#!', '', 'modal-close waves-effect waves-green btn-flat', 'Yes', '', '',''); 
+    let noBtn = renderHTMLElement(footer, '', 'a', '#!', '', 'modal-close waves-effect waves-green btn-flat', 'No', '', '',''); 
+
+    yesBtn.addEventListener('pointerdown', (ev)=>{
+        let a = yesBtn;
+        console.log('Map element ' + this.callingElement.ID + ' is being removed.')
+        this.callingElement.remove();
+        delete this.callingElement.deletionConfirmation;
+        var instance = M.Modal.getInstance(modalContainer);
+        instance.close();
+        instance.destroy();
+        
+        let modal = document.getElementById('modal1');
+        removeHTMLelement(modal);
+    })
+
+
+    options = {
+        opacity:		0.5,
+        inDuration:		250,
+        outDuration:	250,	
+        onOpenStart:	null,	
+        onOpenEnd:		null,	
+        onCloseStart:   null,	
+        onCloseEnd:		(ev)=>{
+            var a =1;
+        },	
+        preventScrolling:true,	
+        dismissible:	true,	
+        startingTop:	'4%',	
+        endingTop:  	'10%'	
+    }
+    var elems = document.querySelectorAll('.modal');
+    var instances = M.Modal.init(elems, options);
+
+    // handle events on the dialog to prevent from bubbling
+    modalContainer.addEventListener('pointerdown', function(ev){
+        ev.stopPropagation();
+    })
+    modalContainer.addEventListener('pointerup', function(ev){
+        ev.stopPropagation();
+    })
+    modalContainer.addEventListener('pointermove', function(ev){
+        ev.stopPropagation();
+    })
+//     <div id="modal1" class="modal">
+//     <div class="modal-content">
+//       <h4>Modal Header</h4>
+//       <p>A bunch of text</p>
+//     </div>
+//     <div class="modal-footer">
+//       <a href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>
+//     </div>
+//   </div>
 }
