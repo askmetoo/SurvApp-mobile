@@ -152,6 +152,7 @@ function designPlan(name, designPlanDOMID){
     this.selectionFrameDOMs = {};
     this.elementToTransform = null;
     this.mapObjectPopupMenu = null;
+    this.reopenPopup = false; // used to reopen popup if the map is being resized or panned in tapAndHeld and other events or if mapObject is being moved
 
     this.activeTransformAction = '';
     this.moveXValueInProgress = 0;
@@ -485,7 +486,7 @@ mapObject.prototype.insertToDesignPlan = function(x,y){
     
     if (this.mapIconSrc != ''){
         let img = document.createElement('img');
-        img.src = this.iconSrc;
+        img.src = this.mapIconSrc;
         div.appendChild(img);
     } else {
         div.innerHTML = '<h2>' + this.mapSymbol + '</h2>'
@@ -559,6 +560,8 @@ mapObject.prototype.setClick_TapListener = function(){
 
 mapObject.prototype.setMoveListener = function(){
     this.containerDOM.addEventListener('pointermove', function(ev){
+        this.popupMenuRemove();
+        this.parentDesignPlan.reopenPopup = true;
         ev.stopPropagation();
         console.log('element moved')
         this.moveOnMap(ev.pageX, ev.pageY)
@@ -778,6 +781,7 @@ mapObject.prototype.popupMenuShow = function(){
     this.popup_menu.render();
     this.setPopupMenuListener();
     app.activeProject.activeDesignPlan.mapObjectPopupMenu = this.popup_menu;
+    this.reopenPopup = false;
 }
 
 mapObject.prototype.setPopupMenuListener = function(){

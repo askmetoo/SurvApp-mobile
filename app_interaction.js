@@ -17,13 +17,21 @@ document.addEventListener('doubleTap', function(ev){
 
 app.activeProject.activeDesignPlan.parentDOM.addEventListener('singleTap', function(ev){
     try{
+
+        // remove popup if the pointer is down on the map (or click)
+        if(general_validation(app.activeProject.activeDesignPlan.activeMapObject)){
+            if(ev.target != app.activeProject.activeDesignPlan.activeMapObject.DOM){
+                app.activeProject.activeDesignPlan.activeMapObject.popupMenuRemove();
+            }
+        }
+
         if (app.appMenus['bottom menu'].activeMenuItem){
             let objectType = app.appMenus['bottom menu'].clickedPath.split('/').slice(-2)[0];
             let objectSubType = app.appMenus['bottom menu'].activeMenuItem.name;
            // app.setAppMessage('test');
             let equipment = equipmentSelection(objectType, objectSubType);
     
-            let mapObjectInstance = new mapObject(equipment);
+            let mapObjectInstance = new mapObject(equipment,'', 'Images/mapObjectImages/CameraWithFOV.png');
             mapObjectInstance.setParentDesignPlan(app.activeProject.activeDesignPlan);
             //mapObjectInstance.setTypeAndSubType(objectType, objectSubType);  // i.e. surveillance, camera
             //mapObjectInstance.generateIDAndMapSymbol();
@@ -55,11 +63,7 @@ let doubleTapFunction = null;
 app.activeProject.activeDesignPlan.parentDOM.addEventListener('pointerdown', function(ev){
     console.log('app container touch')
     
-    if(general_validation(app.activeProject.activeDesignPlan.activeMapObject)){
-        if(ev.target != app.activeProject.activeDesignPlan.activeMapObject.DOM){
-            app.activeProject.activeDesignPlan.activeMapObject.popupMenuRemove();
-        }
-    }
+    
     
 
     let activeDesignPlan = app.activeProject.activeDesignPlan;
@@ -75,6 +79,14 @@ app.activeProject.activeDesignPlan.parentDOM.addEventListener('pointerdown', fun
 })
 
 function tappedAndHeld(ev){ // finger was tapped and held for at least tapsInterval
+
+    //check if there is an active mapObject and if has the popup opened, if so save it to after the action is finished (maybe map zoom or drag) show it again automatically
+    if(general_validation(app.activeProject.activeDesignPlan.mapObjectPopupMenu)){ // if there is existing popup menu reference in the designPlan obejct
+        app.activeProject.activeDesignPlan.reopenPopup = true;
+        app.activeProject.activeDesignPlan.activeMapObject.popupMenuRemove();
+    }
+
+
     let activeDesignPlan = app.activeProject.activeDesignPlan;
     quickTapWaitFlag = false;  // turn off the flag that 
     tapCounter = 0; // set tap counter to 0 - if any of the taps was held it means that it is not multi tap event
@@ -155,7 +167,17 @@ app.activeProject.activeDesignPlan.parentDOM.addEventListener('pointerleave', fu
 function pointerEndHandler(ev){
     let activeDesignPlan = app.activeProject.activeDesignPlan;
     //console.dir(ev)
-    
+    //on end pointer check if the just finished pointer action triggered the popup menu to hide if so reopen it
+    if(app.activeProject.activeDesignPlan.reopenPopup){    
+        // check if the element is withing the viewport
+        if(isElementInViewport(app.activeProject.activeDesignPlan.activeMapObject.elementDOM)){
+            app.activeProject.activeDesignPlan.activeMapObject.popupMenuShow(); // open popupmenu
+        } else {// if the element was not in the viewport set the popupReopen to false to not to reopen it when the element comes back into the viewport
+            app.activeProject.activeDesignPlan.reopenPopup = false; 
+        }
+        
+    }
+
     if(activeDesignPlan.touchStartPointers[ev.pointerId]){
         console.log('pointer up')
         if (quickTapWaitFlag){ // check if the flag for single tap is still set (not set to false by notASingleTap)
