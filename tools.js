@@ -1,4 +1,4 @@
-document.getElementById("app_message").innerHTML = 'tools.js loaded';
+//document.getElementById("app_message").innerHTML = 'tools.js loaded';
 
 function insertTestPoint(DOM,x,y,color){
     let point = document.createElement('div')

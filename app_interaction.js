@@ -4,6 +4,40 @@
 //     return false;
 // })
 
+var manager = new Hammer.Manager(document);
+
+// Create a recognizer
+var singletap = new Hammer.Tap({
+  event: 'singletap',
+  taps: 1
+});
+
+// Add the recognizer to the manager
+manager.add(singletap);
+
+// Subscribe to desired event
+// manager.on('singletap', function(e) {
+//   console.log('hammer singletap')
+// });
+
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.sidenav');
+    let options = {
+        edge	            :	'right',
+        draggable	        :	true,
+        inDuration	        :	250,
+        outDuration     	:	200,
+        onOpenStart         :	null,
+        onOpenEnd       	:	null,
+        onCloseStart    	:	null,
+        onCloseEnd      	:	null,
+        preventScrolling	:	true
+    }
+    var instances = M.Sidenav.init(elems, options);
+  });
+
+
+
 document.addEventListener('singleTap', function(ev){
     //console.log('document - singleTap, ev: ' + ev);
     //console.log(ev);
@@ -12,9 +46,11 @@ document.addEventListener('singleTap', function(ev){
 })
 
 document.addEventListener('doubleTap', function(ev){
-    //console.log('document - dualTap, ev: ' + ev);
-})
+    console.log('document - dualTap, ev: ' + ev);
+}, true)
 
+
+//manager.on('singletap', function(ev) {
 app.activeProject.activeDesignPlan.parentDOM.addEventListener('singleTap', function(ev){
     try{
 
@@ -38,18 +74,20 @@ app.activeProject.activeDesignPlan.parentDOM.addEventListener('singleTap', funct
             //mapObjectInstance.setName(); // gets name from the ID, name = subType + following number of this subType which is already on the design plan
             mapObjectInstance.assignToLayer();
             
-            mapObjectInstance.insertToDesignPlan(ev.detail.eventData.pageX, ev.detail.eventData.pageY)
+            mapObjectInstance.insertToDesignPlan(ev.detail.eventData.pageX, ev.detail.eventData.pageY);//ev.pointers[0].pageX, ev.pointers[0].pageY)//
             mapObjectInstance.setClick_TapListener();
             mapObjectInstance.setMoveListener();
             //console.log(ev)
-            app.setAppMessage('map object added');
+            //app.setAppMessage('map object added');
             //app.activeProject.activeDesignPlan.insertElementToTheMap(new mapObject(parseInt(Math.random()*9999)), ev.detail.clientX, ev.detail.clientY)
         }
     } catch (e){
-        app.setAppMessage(e);
-    }
-    
+        //app.setAppMessage(e);
+        throw e;
+    }    
 })
+
+
 
 let quickTapWaitFlag = false;
 let tapsInterval = 250; // time for tap duration, or time gap between taps to determine single/ double tap
@@ -62,10 +100,6 @@ let doubleTapFunction = null;
 
 app.activeProject.activeDesignPlan.parentDOM.addEventListener('pointerdown', function(ev){
     console.log('app container touch')
-    
-    
-    
-
     let activeDesignPlan = app.activeProject.activeDesignPlan;
     activeDesignPlan.touchStartPointers[ev.pointerId] = ev;    
     activeDesignPlan.touchStartPointers[ev.pointerId].starTime = new Date(); // to test for single, double tap
@@ -221,11 +255,14 @@ function singleTap(ev){
         bubbles: true,
         detail:{
             eventData: ev
-        }       
+        }      
     })
+
+   
     //console.log('single tap');    
     document.dispatchEvent(eventSingleTap)
     app.activeProject.activeDesignPlan.parentDOM.dispatchEvent(eventSingleTap)
+    app.customEvents['singleTap'] = eventSingleTap;
 }
 
 let eventDoubleTap = null;
@@ -240,6 +277,7 @@ function doubleTap(ev){
     })    
     document.dispatchEvent(eventDoubleTap)
     app.activeProject.activeDesignPlan.parentDOM.dispatchEvent(eventDoubleTap)
+    app.customEvents['doubleTap'] = eventDoubleTap;
 }
 
 function cancelTappingDetection(){

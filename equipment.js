@@ -20,7 +20,7 @@ let vendors = {
     
 }
 
-document.getElementById("app_message").innerHTML = 'equipment.js loaded';
+//document.getElementById("app_message").innerHTML = 'equipment.js loaded';
 
 var equipmentSelection = function(type, subType){
     switch(type){

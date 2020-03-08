@@ -2,14 +2,14 @@
 //try{
     var app = new application();
 
-    let userInstance = new user('Marcin', 'Heniorg', 'marcin@skynet4.com', new userPermissions(true));
+    let userInstance = new user('Marcin', 'Heniborg', 'marcin@skynet4.com', new userPermissions(true));
     app.addUser(userInstance);
     app.setCurrentUser(userInstance)
 
     app.addAppMenu(CreateAppMenu());
 
 
-    let projectInstance = new project('firstTestProject');
+    let projectInstance = new project('First Test Project');
     let userMarcin = userInstance;
     let userMichal = new user('Michal', 'Weglowski', 'michal@skynet4.com','')
     let userRoman = new user('Roman', 'Wisniewski', 'roman@skynet4.com','')

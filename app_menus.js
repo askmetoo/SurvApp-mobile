@@ -392,7 +392,7 @@ menuItem.prototype.addPointerDownListener = function(){
                 this.topParent.clickedPath += '/' + this.name; // then just add the name to the path
             }
             this.topParent.setActiveMenuItem(this)
-            app.setAppMessage(this.topParent.activeTopSubmenuItem.name + ': ' + this.name)
+            //app.setAppMessage(this.topParent.activeTopSubmenuItem.name + ': ' + this.name)
             
             //console.log(this.DOM_ID.split('__')[0]);
         }

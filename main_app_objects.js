@@ -5,6 +5,7 @@ function application(){
     this.currentUser = null;
     this.appMenus = {};
     this.appMessageDOM = document.getElementById("app_message");
+    this.customEvents = {};
 }
 
 application.prototype.addUser = function(user){
@@ -18,6 +19,18 @@ application.prototype.addProject = function(project){
 
 application.prototype.setCurrentUser = function(user){
     this.currentUser = user;
+    let userImage = document.getElementById("user_image");
+    if (this.currentUser.imageSrc != ""){
+        userImage.innerHTML = '<img class="circle" src="' + this.currentUser.imageSrc + '">'
+    } else {
+        userImage.innerHTML = '<div class="default_user_image">' + this.currentUser.initials + '</div>'
+    }
+
+    let userName = document.getElementById('user_name');
+    userName.innerHTML = '<span class="white-text name">' + this.currentUser.fName + ' ' + this.currentUser.lName + '</span>'
+
+    let userEmail = document.getElementById('user_email');
+    userEmail.innerHTML = '<span class="white-text email">' + this.currentUser.email + '</span>'
 }
 
 application.prototype.addAppMenu = function(menu){
@@ -26,6 +39,8 @@ application.prototype.addAppMenu = function(menu){
 
 application.prototype.setActiveProject = function(project){
     this.activeProject = project;
+
+    document.getElementById("top_menu_project_name").innerHTML = this.activeProject.name;
 }
 
 application.prototype.setAppMessage = function(message){
@@ -45,6 +60,8 @@ function user(fName, lName, email, permissions) {
     this.ID = fName + lName[0];
     this.email = email;
     this.permissions = permissions;
+    this.imageSrc = "";
+    this.initials = (this.fName.charAt(0) + this.lName.charAt(0)).toUpperCase();
 }
 
 user.prototype.setPermissions = function(permissions){
@@ -543,6 +560,7 @@ mapObject.prototype.remove = function(){
 }
 
 mapObject.prototype.setClick_TapListener = function(){
+    //this.elementDOM.dispatchEvent(eventSingleTap);
     this.elementDOM.addEventListener('pointerdown', function(ev){
         ev.stopPropagation();
         // this.select();
@@ -556,6 +574,22 @@ mapObject.prototype.setClick_TapListener = function(){
         
         
     }.bind(this));
+
+    //
+    this.elementDOM.addEventListener('doubleTap', function(ev){
+        ev.stopPropagation();
+        // this.select();
+        // this.parent.addToSelected();
+
+        //initialize values for translation
+        console.log('element double tapped')
+        // this.transformStartValues.x = this.transformValues.x;
+        // this.transformStartValues.x = this.transformValues.y;
+        this.selectObject();
+        this.popupMenuShow();
+        
+    }.bind(this));
+   // this.elementDOM.dispatchEvent(app.customEvents['doubleleTap']);
 }
 
 mapObject.prototype.setMoveListener = function(){
@@ -582,51 +616,55 @@ mapObject.prototype.selectObject = function(){
             this.setSelectionFrame();
         }
         this.bringOnTop();
-        this.popupMenuShow();
+       
 }
 
 mapObject.prototype.setSelectionFrame = function(){
-    let selectionFrame = document.createElement('div');
-    selectionFrame.classList.add('map_object_selection_frame');
+    // let selectionFrame = document.createElement('div');
+    // selectionFrame.classList.add('map_object_selection_frame');
 
-    let elementRect =  this.elementDOM.getBoundingClientRect();
-    let elementLargerDimension = (elementRect.width > elementRect.height ? elementRect.width : elementRect.height) / this.parentDesignPlan.transformValues.scale;
+    // let elementRect =  this.containerDOM.getBoundingClientRect();
+    // let elementLargerDimension = elementRect.width;//(elementRect.width > elementRect.height ? elementRect.width : elementRect.height) / this.parentDesignPlan.transformValues.scale;
 
-    selectionFrame.style.width = parseInt(elementLargerDimension *1.4) + 'px';
-    selectionFrame.style.height = parseInt(elementLargerDimension *1.4) + 'px';
+    // selectionFrame.style.width = parseInt(elementLargerDimension *1.4) + 'px';
+    // selectionFrame.style.height = parseInt(elementLargerDimension *1.4) + 'px';
 
-    this.elementDOM.appendChild(selectionFrame); // to get rect dims the element needs to be added to DOM
+    // this.elementDOM.appendChild(selectionFrame); // to get rect dims the element needs to be added to DOM
 
-    let frameRect = selectionFrame.getBoundingClientRect();
-    let frameLeft = (Math.floor(- (frameRect.width - elementRect.width) / 2) -1)/ this.parentDesignPlan.transformValues.scale;
-    let frameTop = (Math.floor(- (frameRect.height - elementRect.height) / 2) -1) / this.parentDesignPlan.transformValues.scale;
-    selectionFrame.style.transform = `translate(${frameLeft}px, ${frameTop}px)`;
-    //selectionFrame.style.top = this.transformValues.y + 'px';
+    // let frameRect = selectionFrame.getBoundingClientRect();
+    // let frameLeft = (Math.floor(- (frameRect.width - elementRect.width) / 2) -1)/ this.parentDesignPlan.transformValues.scale;
+    // let frameTop = (Math.floor(- (frameRect.height - elementRect.height) / 2) -1) / this.parentDesignPlan.transformValues.scale;
+    // selectionFrame.style.transform = `translate(${frameLeft}px, ${frameTop}px)`;
+    // //selectionFrame.style.top = this.transformValues.y + 'px';
+
+    this.containerDOM.classList.add('map_object_container_selected');
 
     let rotationNode = document.createElement('div');
     rotationNode.classList.add('map_object_rotation_node');
     this.elementDOM.appendChild(rotationNode);
 
-    this.selectionFrame.frameDOM = selectionFrame;
-    this.selectionFrame.rotationNodeDOM = rotationNode;
+    // this.selectionFrame.frameDOM = selectionFrame;
+    // this.selectionFrame.rotationNodeDOM = rotationNode;
 
-    rotationNode.addEventListener('pointerdown', function(ev){
+    rotationNode.addEventListener('pointerdown',(ev) => {
         ev.stopPropagation();
         //console.log('rotation start...')
-        this.selectionFrame.rotationNodeDOM.addEventListener('pointermove', function(ev){
+        rotationNode.addEventListener('pointermove', function(ev){
             ev.stopPropagation();
             //console.log('rotation in progress...')
             this.rotateElement(ev.pageX,ev.pageY);
         }.bind(this))
             // 'this' is mapObject because of bind
-    }.bind(this))
+    })
 
 
 }
 
 mapObject.prototype.unsetSelectionFrame = function(){
-    this.selectionFrame.frameDOM.remove();
-    this.selectionFrame.rotationNodeDOM.remove();
+    // this.selectionFrame.frameDOM.remove();
+    // this.selectionFrame.rotationNodeDOM.remove();
+
+    this.containerDOM.classList.remove('map_object_container_selected');
 }
 
 mapObject.prototype.setLocation = function(x,y){   

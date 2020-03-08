@@ -1,13 +1,20 @@
 .map_object_container{
     display: inline-block;
     position: absolute;
-    height: 50px;
-    width: 50px;
-    z-index: 5;
-    
+    height: auto;
+    width: auto;
+    z-index: 5;      
 }
+
+.map_object_container_selected{
+    border-radius: 50%;
+    border: 1px dashed gray;
+}
+
 .map_object_icon {
-    position: absolute;
+    position: relative;
+    width: 100px;
+    height: 100px;
 }
 
 .map_object_icon_default{
@@ -32,12 +39,15 @@
 }
 
 .map_object_name{
+    position: absolute;
+    top:0;
+    left:0;
     display: inline-block;
     margin: 2px;
     font-size: small;
     color: black;
-    width: 60px;
-    background-color: rgba(255, 250, 250, 0.555);
+    /* max-width: 60px; */
+    background-color: rgba(255, 250, 250, 0.397);
 }
 
 .map_object_selection_frame{
@@ -59,8 +69,8 @@
     height: 10px;
     border-radius: 50%;
     background-color: rgb(61, 61, 61);
-    left: -10px;
-    top: -10px;
+    left: 10px;
+    top: 10px;
     z-index: 4;
 }
 
