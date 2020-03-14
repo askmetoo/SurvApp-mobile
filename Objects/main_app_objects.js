@@ -437,7 +437,12 @@ function mapObject(equipment, ID='', mapIconSrc='', type='', subType='', locatio
     this.parentDesignPlan = null;
     this.parentLayer = null;
 
-    this.displayElementsDOMs = {titleDOM: null};
+    this.displayElements = {'title' : {
+                                DOM: null,
+                                x: 0,
+                                y: 0 
+                             }
+                           }
     
     this.displayName = true;
     this.selectionFrame = {frameDOM: null, rotationNodeDOM: null, rotationNodeConatainerDOM: null};
@@ -527,7 +532,7 @@ mapObject.prototype.insertToDesignPlan = function(x,y){
         titleDOM.classList.add('map_object_name');
         titleDOM.innerHTML = this.name;
         containerDOM.appendChild(titleDOM);
-        this.displayElementsDOMs.titleDOM = titleDOM;
+        this.displayElements['title'].DOM = titleDOM;
     }
 
   
@@ -631,25 +636,7 @@ mapObject.prototype.selectObject = function(){
 }
 
 mapObject.prototype.setSelectionFrame = function(){
-    // let selectionFrame = document.createElement('div');
-    // selectionFrame.classList.add('map_object_selection_frame');
-
-    // let elementRect =  this.containerDOM.getBoundingClientRect();
-    // let elementLargerDimension = elementRect.width;//(elementRect.width > elementRect.height ? elementRect.width : elementRect.height) / this.parentDesignPlan.transformValues.scale;
-
-    // selectionFrame.style.width = parseInt(elementLargerDimension *1.4) + 'px';
-    // selectionFrame.style.height = parseInt(elementLargerDimension *1.4) + 'px';
-
-    // this.DOM.appendChild(selectionFrame); // to get rect dims the element needs to be added to DOM
-
-    // let frameRect = selectionFrame.getBoundingClientRect();
-    // let frameLeft = (Math.floor(- (frameRect.width - elementRect.width) / 2) -1)/ this.parentDesignPlan.transformValues.scale;
-    // let frameTop = (Math.floor(- (frameRect.height - elementRect.height) / 2) -1) / this.parentDesignPlan.transformValues.scale;
-    // selectionFrame.style.transform = `translate(${frameLeft}px, ${frameTop}px)`;
-    // //selectionFrame.style.top = this.transformValues.y + 'px';
-
-    //this.containerDOM.classList.add('map_object_container_selected');
-
+   
     let selectionFrame = document.createElement('span');   
     selectionFrame.classList.add('map_object_selection_frame')
     this.containerDOM.appendChild(selectionFrame);
@@ -662,11 +649,13 @@ mapObject.prototype.setSelectionFrame = function(){
     let rotationNode = document.createElement('div');
     rotationNode.classList.add('map_object_rotation_node');
     rotationNodeContainer.append(rotationNode);
-    //set origin for rotation of the rotation node 
+    //set origin for rotation of the rotation node to the middle of the mapObject container DOM
     let domRect = this.containerDOM.getBoundingClientRect();
     let originX = domRect.width/2;
     let originY = domRect.height/2;
     rotationNodeContainer.style.transformOrigin = `${originX}px ${originY}px`;
+    //rotate the node by the value it was previously rotated (before the object was previously unselected)
+    rotationNodeContainer.style.transform = `rotate(${this.transformValues.rotation}deg)`
     //this.rotationNodeDOM = rotationNode;
 
     this.selectionFrame.frameDOM = selectionFrame;
@@ -688,16 +677,26 @@ mapObject.prototype.setSelectionFrame = function(){
             // 'this' is mapObject because of bind
     })
 
-    this.displayElementsDOMs.titleDOM.addEventListener('pointerdown', ev => {
+    this.displayElements['title'].DOM.addEventListener('pointerdown', ev => {
         ev.stopPropagation();
         let startX = ev.clientX;
         let startY = ev.clientY;
 
-        this.displayElementsDOMs.titleDOM.addEventListener('pointermove', ev => {
-            let titleRect = this.displayElementsDOMs.titleDOM.getBoundingClientRect();
-            let moveX = titleRect.x + ev.clientX - startX;
-            let moveY = titleRect.y + ev.clientY - startY;
-            this.displayElementsDOMs.titleDOM.style.transform = `translate(${moveX}px, ${moveY}px)`
+        let moveX = 0;
+        let moveY = 0;
+
+        this.displayElements['title'].DOM.addEventListener('pointermove', ev => {
+            ev.stopPropagation();            
+            moveX = ev.clientX - startX + this.displayElements['title'].x;
+            moveY = ev.clientY - startY + this.displayElements['title'].y;
+            this.displayElements['title'].DOM.style.transform = `translate(${moveX}px, ${moveY}px)`
+        })
+
+        // when the moving event is finished save values that were currently calculated for translation to continue strating with them next time this elem is moved
+        this.displayElements['title'].DOM.addEventListener('pointerup', ev => {
+            ev.stopPropagation();
+            this.displayElements['title'].x = moveX;
+            this.displayElements['title'].y = moveY;
         })
     })
 }
