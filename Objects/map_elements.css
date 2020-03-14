@@ -6,11 +6,6 @@
     z-index: 5;      
 }
 
-.map_object_container_selected{
-    border-radius: 50%;
-    border: 1px dashed gray;
-}
-
 .map_object_icon {
     position: relative;
     width: 100px;
@@ -40,7 +35,7 @@
 
 .map_object_name{
     position: absolute;
-    top:0;
+    top:80%;
     left:0;
     display: inline-block;
     margin: 2px;
@@ -49,29 +44,64 @@
     /* max-width: 60px; */
     background-color: rgba(255, 250, 250, 0.397);
 }
-
+/* 
 .map_object_selection_frame{
     position: absolute;
     display: inline-block;    
     border-radius: 50%;
     border: 1px dashed rgb(255, 116, 2);
-    /* background-color: yellow; */
+    background-color: yellow;
     z-index: 3;
     left: 0;
     top: 0;
-    /* transform-origin: center; */
+    transform-origin: center;
+} */
+
+
+
+.map_object_selection_frame{
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width:100%;
+    border-radius: 50%;
+    border: 1px dashed gray;
+    background-color: rgba(76, 0, 130, 0.061);
+    
+}
+
+.map_object_rotation_node_container{
+    position: absolute;
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    /* background-color: rgb(255, 7, 7); */
+    left: 0px;
+    top: 0px;
+    z-index: 4;
 }
 
 .map_object_rotation_node{
     position: absolute;
     display: inline-block;
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     background-color: rgb(61, 61, 61);
-    left: 10px;
-    top: 10px;
+    left: 0px;
+    top: 0px;
     z-index: 4;
+}
+
+/* rotation node selection frame connector line */
+.map_object_rotation_node::after{
+    position: absolute;
+    content: ' ';
+    border-top: 1px dashed rgb(61, 61, 61);
+    width: 7px;
+    transform: translate(10px, 12px) rotate(45deg);
 }
 
 /* popup menu */

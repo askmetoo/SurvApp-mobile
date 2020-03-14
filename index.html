@@ -12,9 +12,9 @@
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
-    <link rel="stylesheet" href="app_menus.css">
-    <link rel="stylesheet" href="map_elements.css">
-    <link rel="stylesheet" href="app_panes.css">
+    <link rel="stylesheet" href="GUI/app_menus.css">
+    <link rel="stylesheet" href="Objects/map_elements.css">
+    <link rel="stylesheet" href="GUI/app_panes.css">
     <!-- Materialize Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -52,6 +52,7 @@
             <!-- <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a> -->
             <!-- <nav> navbar content here  </nav> -->
               <span id="top_menu_project_name"></span>
+              <i class = "small material-icons" id="top_menu_edit_project">edit</i>
               <a href="#" id="hamburger_menu_button" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
                     
             
@@ -74,18 +75,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.js"></script>
           
-<script type="text/javascript" src="firebase.js"></script>
-<script type="text/javascript" src="tools.js"></script>
-<script type="text/javascript" src="equipment.js"></script>
+<script type="text/javascript" src="Third Party/firebase.js"></script>
+<script type="text/javascript" src="Utilities/tools.js"></script>
+<script type="text/javascript" src="Objects/equipment.js"></script>
 
-<script type="text/javascript" src="app_menus.js"></script>
-<script type="text/javascript" src="app_panes.js"></script>
-<script type="text/javascript" src="main_app_objects.js"></script>
+<script type="text/javascript" src="GUI/app_menus.js"></script>
+<script type="text/javascript" src="GUI/app_panes.js"></script>
+<script type="text/javascript" src="Objects/main_app_objects.js"></script>
 <script type="text/javascript" src="index.js"></script>
-<script type="text/javascript" src="app_interaction.js"></script>
+<script type="text/javascript" src="Logic/app_interaction.js"></script>
 
 
-<script type="text/javascript" src="tests.js"></script>
+<script type="text/javascript" src="Tests/tests.js"></script>
 
 <!-- The core Firebase JS SDK is always required and must be listed first -->
 <script src="https://www.gstatic.com/firebasejs/7.8.2/firebase-app.js"></script>

@@ -51,7 +51,9 @@ document.addEventListener('doubleTap', function(ev){
 
 
 //manager.on('singletap', function(ev) {
-app.activeProject.activeDesignPlan.parentDOM.addEventListener('singleTap', function(ev){
+//app.activeProject.activeDesignPlan.parentDOM.addEventListener('singleTap', function(ev){
+app.activeProject.activeDesignPlan.DOM.addEventListener('singleTap', function(ev){
+//document.addEventListener('singleTap', function(ev){
     try{
 
         // remove popup if the pointer is down on the map (or click)
@@ -61,7 +63,7 @@ app.activeProject.activeDesignPlan.parentDOM.addEventListener('singleTap', funct
             }
         }
 
-        if (app.appMenus['bottom menu'].activeMenuItem){
+        if (ev.currentTarget == app.activeProject.activeDesignPlan.DOM && app.appMenus['bottom menu'].activeMenuItem){
             let objectType = app.appMenus['bottom menu'].clickedPath.split('/').slice(-2)[0];
             let objectSubType = app.appMenus['bottom menu'].activeMenuItem.name;
            // app.setAppMessage('test');
@@ -204,7 +206,7 @@ function pointerEndHandler(ev){
     //on end pointer check if the just finished pointer action triggered the popup menu to hide if so reopen it
     if(app.activeProject.activeDesignPlan.reopenPopup){    
         // check if the element is withing the viewport
-        if(isElementInViewport(app.activeProject.activeDesignPlan.activeMapObject.elementDOM)){
+        if(isElementInViewport(app.activeProject.activeDesignPlan.activeMapObject.DOM)){
             app.activeProject.activeDesignPlan.activeMapObject.popupMenuShow(); // open popupmenu
         } else {// if the element was not in the viewport set the popupReopen to false to not to reopen it when the element comes back into the viewport
             app.activeProject.activeDesignPlan.reopenPopup = false; 
@@ -260,9 +262,21 @@ function singleTap(ev){
 
    
     //console.log('single tap');    
-    document.dispatchEvent(eventSingleTap)
-    app.activeProject.activeDesignPlan.parentDOM.dispatchEvent(eventSingleTap)
-    app.customEvents['singleTap'] = eventSingleTap;
+    ev.target.dispatchEvent(eventSingleTap);
+
+    // if (ev.target.classList.contains('map_object_icon') && app.activeProject.activeDesignPlan.mapObjects.keys.length > 0){
+    //     for(k in app.activeProject.activeDesignPlan.mapObjects){
+    //         let mapObject = app.activeProject.activeDesignPlan.mapObjects[k];
+    //         mapObject.containerDOM.dispatchEvent(eventSingleTap)
+    //     }
+    // } else {
+    //     document.dispatchEvent(eventSingleTap)
+    //     app.activeProject.activeDesignPlan.parentDOM.dispatchEvent(eventSingleTap)
+    //     app.activeProject.activeDesignPlan.DOM.dispatchEvent(eventSingleTap)
+    //     app.customEvents['singleTap'] = eventSingleTap; 
+    // }
+    
+    
 }
 
 let eventDoubleTap = null;
@@ -275,9 +289,22 @@ function doubleTap(ev){
             eventData: ev
         }
     })    
-    document.dispatchEvent(eventDoubleTap)
-    app.activeProject.activeDesignPlan.parentDOM.dispatchEvent(eventDoubleTap)
-    app.customEvents['doubleTap'] = eventDoubleTap;
+
+    ev.target.dispatchEvent(eventDoubleTap);
+    // if (ev.target.classList.contains('map_object_icon') && app.activeProject.activeDesignPlan.mapObjects.keys.length > 0){
+    //     for(k in app.activeProject.activeDesignPlan.mapObjects){
+    //         let mapObject = app.activeProject.activeDesignPlan.mapObjects[k];
+    //         mapObject.containerDOM.dispatchEvent(eventDoubleTap)
+    //     }
+    // } else {
+    //     document.dispatchEvent(eventDoubleTap)
+    //     app.activeProject.activeDesignPlan.parentDOM.dispatchEvent(eventDoubleTap)
+    //     app.customEvents['doubleTap'] = eventDoubleTap;
+    // }
+    
+
+   
+    
 }
 
 function cancelTappingDetection(){

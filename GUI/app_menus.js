@@ -50,12 +50,15 @@ let bottomMenuJSON = {
                         'analog intercom':2
                     }
                 },
-                'access control1': {   
+                'network': {   
                     'icon_src': '',                 
                     'items':{
                         'DOM_Class': 'bottom_menu_list_item_submenu',
-                        'reader': 1,
-                        'panel': 2,
+                        'switch': 1,
+                        'router': 2,
+                        'injector': 3,
+                        'antenna': 4,
+                        'fiber': 2,
                     }
                 },
                 'alarm1': {   
@@ -79,18 +82,7 @@ let bottomMenuJSON = {
             }
         },
     
-        'edit' : {
-            // 'DOM_ID': 'bottom_menu_submenu_2',   
-            'icon_src': '',          
-            'items':{
-                'DOM_Class': 'bottom_menu_list_item_submenu', 
-                'edit1': 1,
-                'edit2': 2,
-                'edit3': 3,
-                'edit4': 4
-            }
-        },
-    
+       
         'layers' : {
             // // 'DOM_ID': 'bottom_menu_submenu_3',             
             // 'items':{
@@ -128,7 +120,20 @@ let bottomMenuJSON = {
             //     }
             //}
         },
-        'quote': 1
+        'quote': 1,
+
+        'plans' : {
+            // 'DOM_ID': 'bottom_menu_submenu_2',   
+            'icon_src': '',          
+            'items':{
+                'DOM_Class': 'bottom_menu_list_item_submenu', 
+                'add...': 1,
+                '1st Floor': 2,
+                '2nd Floor': 3,
+                '3rd Floor': 4
+            }
+        },
+    
 
     }    
 

@@ -188,7 +188,7 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
     closeButton.ID = 'dialog_close_button';
     dialog.appendChild(closeButton);
     
-    closeButton.addEventListener('pointerup', function(ev){
+    closeButton.addEventListener('pointerdown', function(ev){
         ev.stopPropagation();
         // when dialog is closed save changed data
         for(let key in this.callingElement.associatedEquipment.parameters){
@@ -360,7 +360,7 @@ app_pane.prototype.renderPhotosDialog = function(parentDOM){
     closeButton.ID = 'dialog_close_button';
     dialog.appendChild(closeButton);
     
-    closeButton.addEventListener('pointerup', function(ev){
+    closeButton.addEventListener('pointerdown', function(ev){
         ev.stopPropagation();
 
         this.DOM.parentNode.removeChild(this.DOM);
