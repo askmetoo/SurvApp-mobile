@@ -39,7 +39,10 @@ application.prototype.addAppMenu = function(menu){
 
 application.prototype.setActiveProject = function(project){
     this.activeProject = project;
+    this.updateProjectNameDisplay();    
+}
 
+application.prototype.updateProjectNameDisplay = function(){
     document.getElementById("top_menu_project_name").innerHTML = this.activeProject.name;
 }
 
@@ -54,11 +57,13 @@ application.prototype.clearAppMessage = function(){
 }
 
 
-function user(fName, lName, email, permissions) {
+function user(fName, lName, email, phoneNumber = '773-767-5400', permissions) {
     this.fName = fName;
     this.lName = lName;
+    this.fullName = fName + ' ' + lName;
     this.ID = fName + lName[0];
     this.email = email;
+    this.phoneNumber = phoneNumber;
     this.permissions = permissions;
     this.imageSrc = "";
     this.initials = (this.fName.charAt(0) + this.lName.charAt(0)).toUpperCase();
@@ -88,7 +93,47 @@ user.prototype.setPermission = function(permission, value){
     this.permissions[permission] = value;
 }
 
-function project(name, createdBy = 'auto', cretedDate = new Date()){
+class TopProjectMenu{
+    constructor(project){
+        this.project = project;
+        this.containerDOM = document.getElementById('top_menu');
+        this.nameDOM = document.getElementById('top_menu_project_name');
+        this.projectEditIconDOM = document.getElementById('top_menu_edit_project');
+       
+        this.associatedObject = project;
+        this.detailsDialog = null;
+        
+        this.projectEditIconDOM.addEventListener('pointerdown', ev => {
+            console.log('change project data tapped')
+            this.showProjectDetailsDialog()
+            // let newName = prompt('Enter new project name: ', this.project.name);
+            //     if(newName == ''){
+            //         alert('Name can\'t be empty!');
+            //     } else if(newName != null) {                   
+            //         this.updateProjectNameDisplay(newName);
+            //         this.project.name = newName;
+            //     }
+                
+            })
+       
+    }
+
+    updateProjectNameDisplay(name){
+        if (name.length > 11){
+            this.nameDOM.classList.add('smaller_header_font')
+        } else {
+            this.nameDOM.classList.remove('smaller_header_font')
+        }
+        this.nameDOM.innerHTML = name;
+    }
+
+    showProjectDetailsDialog(){
+        this.detailsDialog = new app_pane('project_details_dialog', 'project details', this.project.activeDesignPlan.parentDOM, this, 'project_details_dialog'); // (name, DOM_ID)    
+        this.detailsDialog.render(this.project.activeDesignPlan.parentDOM);
+    }
+}
+
+function project(name, createdBy, cretedDate = formatDateTime(new Date())){
     this.parentApp = null;
     this.name = name;
     this.designPlans = {};
@@ -99,6 +144,63 @@ function project(name, createdBy = 'auto', cretedDate = new Date()){
     this.projectRoles = ['project manager', 'team leader', 'technician','purchasing','account exec','support'];
     this.projectUsers = {};
     this.equipment = {};
+    this.topMenu = null;
+
+    this.tabs = ['info', 'customer']
+    this.parameters = {
+        'name': {
+            header: true,
+            display: 'project name',
+            value: this.name,
+            htmlElement: 'h3',
+            // htmlElementOption: 'text',
+            // wrapperDOMClass: 'input-field col s6',
+            DOM: null,
+            show: true,
+            editable: true,
+            // tab: 0
+        },
+
+        'dateCreated': {
+            display: 'created date',
+            value: this.createdDate,
+            htmlElement: 'input',
+            htmlElementOption: 'text',
+            // wrapperDOMClass: 'input-field col s6',
+            DOM: null,
+            show: true,
+            editable: false,
+            tab: 0               
+        },
+
+        'createdBy': {
+            display: 'created by',
+            value: this.createdBy.fullName,
+            htmlElement: 'input',
+            htmlElementOption: 'text',
+            // wrapperDOMClass: 'input-field col s6',
+            DOM: null,
+            show: true,
+            editable: false,
+            tab: 0               
+        },
+
+        'projectPeople': {
+            display: 'people',
+            value: this.projectUsers,
+            htmlElement: 'custom',
+            // wrapperDOMClass: 'input-field col s6',
+            DOM: null,
+            show: true,
+            editable: false,
+            tab: 0               
+        },
+
+        
+
+
+
+    }
     //example
     // this.projectUsers['MichalWeglowski'] = {
     //     user: user,
@@ -112,6 +214,10 @@ function project(name, createdBy = 'auto', cretedDate = new Date()){
 
 project.prototype.setParentApp = function(app){
     this.parentApp = app;
+}
+
+project.prototype.setTopMenu = function(topMenu){
+    this.topMenu = topMenu;
 }
 
 project.prototype.addDesignPlan = function(designPlan){
@@ -130,7 +236,7 @@ project.prototype.setCustomer = function(customer){
 
 project.prototype.addProjectUser = function(user, role){
     this.projectUsers[user.ID] = {};
-    this.projectUsers[user.ID].user = user;
+    this.projectUsers[user.ID].details = user;
     this.projectUsers[user.ID].role = role;
 }
 
@@ -416,7 +522,7 @@ designPlan.prototype.removeMapObjectPopupMenu = function(){
 
 
 function mapObject(equipment, ID='', mapIconSrc='', type='', subType='', locationRect=null, details='', notes='', status='', onMap=false){
-    this.associatedEquipment = equipment;
+    this.associatedObject = equipment;
     
     this.name = equipment.name; // for the customer 
     this.type = equipment.type; // Video Surveillance, Access Control etc.
@@ -437,7 +543,7 @@ function mapObject(equipment, ID='', mapIconSrc='', type='', subType='', locatio
     this.parentDesignPlan = null;
     this.parentLayer = null;
 
-    this.displayElements = {'title' : {
+    this.displayElements = {'name' : {
                                 DOM: null,
                                 x: 0,
                                 y: 0 
@@ -528,11 +634,11 @@ mapObject.prototype.insertToDesignPlan = function(x,y){
    
 
     if (this.displayName){
-        let titleDOM = document.createElement('p');
-        titleDOM.classList.add('map_object_name');
-        titleDOM.innerHTML = this.name;
-        containerDOM.appendChild(titleDOM);
-        this.displayElements['title'].DOM = titleDOM;
+        let nameDOM = document.createElement('p');
+        nameDOM.classList.add('map_object_name');
+        nameDOM.innerHTML = this.name;
+        containerDOM.appendChild(nameDOM);
+        this.displayElements['name'].DOM = nameDOM;
     }
 
   
@@ -557,10 +663,7 @@ mapObject.prototype.insertToDesignPlan = function(x,y){
 
     this.addPopupMenu('mapObject_popup_menu');
     this.addPopupMenuItems(['details', 'add note', 'photos', 'delete'])
-    //
-   // this.setPopupMenuListener();
-
-
+   
     this.selectObject();
 }
 
@@ -568,6 +671,12 @@ mapObject.prototype.remove = function(){
     this.popupMenuRemove();
     removeHTMLelement(this.containerDOM);
     delete (this.parentDesignPlan.mapObjects[this.ID]);
+}
+
+mapObject.prototype.updateDisplayedName = function(){
+    if(this.displayElements['name'].DOM){
+        this.displayElements['name'].DOM.innerHTML = this.name;
+    }
 }
 
 mapObject.prototype.setClick_TapListener = function(){
@@ -677,7 +786,7 @@ mapObject.prototype.setSelectionFrame = function(){
             // 'this' is mapObject because of bind
     })
 
-    this.displayElements['title'].DOM.addEventListener('pointerdown', ev => {
+    this.displayElements['name'].DOM.addEventListener('pointerdown', ev => {
         ev.stopPropagation();
         let startX = ev.clientX;
         let startY = ev.clientY;
@@ -685,18 +794,18 @@ mapObject.prototype.setSelectionFrame = function(){
         let moveX = 0;
         let moveY = 0;
 
-        this.displayElements['title'].DOM.addEventListener('pointermove', ev => {
+        this.displayElements['name'].DOM.addEventListener('pointermove', ev => {
             ev.stopPropagation();            
-            moveX = ev.clientX - startX + this.displayElements['title'].x;
-            moveY = ev.clientY - startY + this.displayElements['title'].y;
-            this.displayElements['title'].DOM.style.transform = `translate(${moveX}px, ${moveY}px)`
+            moveX = ev.clientX - startX + this.displayElements['name'].x;
+            moveY = ev.clientY - startY + this.displayElements['name'].y;
+            this.displayElements['name'].DOM.style.transform = `translate(${moveX}px, ${moveY}px)`
         })
 
         // when the moving event is finished save values that were currently calculated for translation to continue strating with them next time this elem is moved
-        this.displayElements['title'].DOM.addEventListener('pointerup', ev => {
+        this.displayElements['name'].DOM.addEventListener('pointerup', ev => {
             ev.stopPropagation();
-            this.displayElements['title'].x = moveX;
-            this.displayElements['title'].y = moveY;
+            this.displayElements['name'].x = moveX;
+            this.displayElements['name'].y = moveY;
         })
     })
 }

@@ -1,5 +1,5 @@
 function app_pane(name, type, parentDOM, callingElement, css_class){
-    this.pane_name = name;
+    this.name = name;
     this.type = type;
     this.parentDOM = parentDOM;
     this.DOM = '';
@@ -12,9 +12,7 @@ function app_pane(name, type, parentDOM, callingElement, css_class){
         x: 0,
         y: 0
     }
-
     this.cssClass = css_class;
-     
 }
 
 function app_pane_general_item(ID, name){
@@ -137,6 +135,9 @@ app_pane.prototype.render = function(parentDOM){
         return this.DOM;
     } else if (this.type == 'map object deletion'){
         this.DOM = this.renderDeletionConfirmationDialog(parentDOM);
+    } else if(this.type == 'project details'){
+        this.DOM = this.renderDetailsDialog(parentDOM);
+        return this.DOM;
     }
 }
 
@@ -165,10 +166,10 @@ app_pane.prototype.renderMessageDialog = function(parentDOM){
 }
 
 app_pane.prototype.renderDetailsDialog = function(parentDOM){
-    let caller = this.callingElement.associatedEquipment;
+    let caller = this.callingElement.associatedObject;
 
     let dialog = document.createElement('div');
-    dialog.classList.add('map_object_dialog');
+    dialog.classList.add('details_dialog');
     parentDOM.appendChild(dialog);
 
     // handle events on the dialog to prevent from bubbling
@@ -191,8 +192,8 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
     closeButton.addEventListener('pointerdown', function(ev){
         ev.stopPropagation();
         // when dialog is closed save changed data
-        for(let key in this.callingElement.associatedEquipment.parameters){
-            let parameter = this.callingElement.associatedEquipment.parameters[key];
+        for(let key in this.callingElement.associatedObject.parameters){
+            let parameter = this.callingElement.associatedObject.parameters[key];
             if (!parameter.editable){
                 continue;
             }
@@ -204,14 +205,14 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
 
                     if(key == 'status'){
                         //if execution got here means the status has changed so we need to write to the history
-                        let statusNote = getValueOfHTMLElement(this.callingElement.associatedEquipment.parameters.statusNote.DOM);
+                        let statusNote = getValueOfHTMLElement(this.callingElement.associatedObject.parameters.statusNote.DOM);
                         let statusHistoryEntry = {
                             user: app.currentUser,
                             dateTime: formatDateTime(new Date()),
                             status: DOMValue,
                             note: statusNote
                         }       
-                        this.callingElement.associatedEquipment.parameters.statusHistory.value.unshift(statusHistoryEntry);       
+                        this.callingElement.associatedObject.parameters.statusHistory.value.unshift(statusHistoryEntry);       
                     }
 
                     if(key == 'note'){
@@ -221,7 +222,7 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
                             dateTime: formatDateTime(new Date()),                            
                             note: DOMValue
                         }       
-                        this.callingElement.associatedEquipment.parameters.noteHistory.value.unshift(noteHistoryEntry);       
+                        this.callingElement.associatedObject.parameters.noteHistory.value.unshift(noteHistoryEntry);       
                     }
                 }
             }
@@ -234,14 +235,15 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
     // Materialize tabs
     let fieldsContainer = document.createElement('div');
     
-    let tabs = ['install','info', 'checklist', 'options']
-    let tabContentDivs = createMaterializeTabs(fieldsContainer,tabs) // tabContentDivs['container'] - whole element, tabContentDivs[tabs[0]] - tab 1 ...
+    //let tabs = ['install','info', 'checklist', 'options']
+    let tabContentDivs = createMaterializeTabs(fieldsContainer,caller.tabs) // tabContentDivs['container'] - whole element, tabContentDivs[tabs[0]] - tab 1 ...
     
 
     let rowDOMs = {}; // for rendering few fields in one row
     for(let k in caller.parameters){
         let parameter = caller.parameters[k];
-        let id = 'map_object_details_dialog__' + k;
+        let id = this.name + '__' + k;
+        // let elementClass = 'dialog_title';
         let value = parameter.value;
         let valueOptions = parameter.hasOwnProperty('options') ? parameter.options : null;
         let label = parameter.hasOwnProperty('display') ? parameter.display : null;
@@ -253,11 +255,12 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
 
         if(parameter.hasOwnProperty('header')){
             let headerContainer = renderHTMLElement(dialog, '', 'div', '', '', '', '', '', '')
-            let header = renderHTMLElement(headerContainer, k, parameter.htmlElement, '', id, '', value, valueOptions, '')
+            let header = renderHTMLElement(headerContainer, k, parameter.htmlElement, '', id, 'dialog_title', value, valueOptions, '')
             let optionIconsContainer = renderHTMLElement(headerContainer, '', 'div', '', '', '', '', '', '');
             let edit = renderHTMLElement(optionIconsContainer, '', 'i', '', id + '__edit', 'small material-icons', 'edit', '', '')
             let message = renderHTMLElement(optionIconsContainer, '', 'i', '',  'map_object_details_dialog__message', 'small material-icons', 'message', '', '')
             
+            //change name event listener (tap on the pencil next to the name)
             edit.addEventListener('pointerdown', (ev) => {
                 let newName = prompt('Enter new name: ', caller.parameters.name.value);
                 if(newName == ''){
@@ -270,6 +273,8 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
                     }
                     header.innerHTML = newName;
                     caller.parameters.name.value = newName;
+                    caller.mapObject.name = newName;
+                    caller.mapObject.updateDisplayedName();
                 }
                 
             })
@@ -293,12 +298,12 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
             if (general_validation(rowDOMs[parameter.row])){
                 htmlWrapperDivRow = rowDOMs[parameter.row];
             } else {
-                htmlWrapperDivRow = renderHTMLElement(tabContentDivs[tabs[parameter.tab]], '', 'div', '', '', 'row', '', '', '','');
+                htmlWrapperDivRow = renderHTMLElement(tabContentDivs[caller.tabs[parameter.tab]], '', 'div', '', '', 'row', '', '', '','');
                 rowDOMs[parameter.row] = htmlWrapperDivRow;
             }
              
         } else {
-            htmlWrapperDivRow = renderHTMLElement(tabContentDivs[tabs[parameter.tab]], '', 'div', '', '', 'row', '', '', '','');
+            htmlWrapperDivRow = renderHTMLElement(tabContentDivs[caller.tabs[parameter.tab]], '', 'div', '', '', 'row', '', '', '','');
         }
 
         let htmlWrapperDivInputField = renderHTMLElement(htmlWrapperDivRow, '', 'div', '', '', wrapperDOMClass, '', '', '','');
@@ -333,10 +338,10 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
 }
 
 app_pane.prototype.renderPhotosDialog = function(parentDOM){
-    let caller = this.callingElement.associatedEquipment;
+    let caller = this.callingElement.associatedObject;
 
     let dialog = document.createElement('div');
-    dialog.classList.add('map_object_dialog');
+    dialog.classList.add('details_dialog');
     parentDOM.appendChild(dialog);
 
     //header render
@@ -450,7 +455,7 @@ app_pane.prototype.renderPhotosDialog = function(parentDOM){
 }
 
 app_pane.prototype.renderDeletionConfirmationDialog = function(parentDOM){
-    let caller = this.callingElement.associatedEquipment;
+    let caller = this.callingElement.associatedObject;
 
     // let dialog = document.createElement('div');
     // dialog.classList.add('map_object_dialog');

@@ -110,6 +110,8 @@ class Equipment {
         this.mapObject = null;
         this.parentProject = null;
 
+        this.tabs = ['install','info', 'checklist', 'options']; // definition of tabs that will be displayed in the details dialog
+
         this.parameters = {
             'name' : {
                 header: true,

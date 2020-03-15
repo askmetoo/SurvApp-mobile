@@ -154,6 +154,10 @@ function renderHTMLElement(parent, fieldName, htmlTag, htmlTagOptions, id, domCl
                 let noteHistoryDOM = buildHistorySection(fieldName,label,value);
                 parent.appendChild(noteHistoryDOM);
             break; 
+
+            case 'projectPeople':
+                let projectPeopleDOM = buidProjectPeopleSection(fieldName,label,value);
+                parent.appendChild(projectPeopleDOM);
         }
     }    
 }
@@ -239,6 +243,38 @@ function buildHistorySection(type,labelText,values){
         }
     }
     return container;
+}
+
+function buidProjectPeopleSection(type,label, values){
+    console.log('building project people section')
+    let sectionContainer = document.createElement('div');
+    sectionContainer.classList.add('project_people_section');
+
+    let labelDOM = document.createElement('label');
+    labelDOM.innerHTML = label + ' (' + Object.keys(values).length + ')';
+    sectionContainer.appendChild(labelDOM)
+
+    for(let k in values){
+        let person = values[k];
+
+        let entryContainer = document.createElement('div');
+        sectionContainer.appendChild(entryContainer);
+
+        let personRole = document.createElement('span');
+        personRole.innerHTML = person.role;
+        entryContainer.appendChild(personRole);
+
+        let personID = document.createElement('span');
+        personID.innerHTML = person.details.ID;
+        entryContainer.appendChild(personID);
+
+        let phoneNumber = document.createElement('span');
+        phoneNumber.innerHTML = '<a href="tel:' + person.details.phoneNumber + '">' + person.details.phoneNumber + '</a>';
+        entryContainer.appendChild(phoneNumber);
+    }
+    
+    return sectionContainer;
+
 }
 
 function createMaterializeTabs(parent, names){
