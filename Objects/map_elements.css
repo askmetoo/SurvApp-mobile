@@ -6,10 +6,12 @@
     z-index: 5;      
 }
 
-.map_object_icon {
+.map_object_icon>img {
     position: relative;
-    width: 100px;
-    height: 100px;
+    left:25px;
+    top: 25px;
+    width: 50px;
+    height: 50px;
 }
 
 .map_object_icon_default{
@@ -62,10 +64,10 @@
 
 .map_object_selection_frame{
     position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width:100%;
+    left: -29px;
+    top: -29px;
+    height: 112px;
+    width:110px;
     border-radius: 50%;
     border: 1px dashed gray;
     background-color: rgba(76, 0, 130, 0.061);
@@ -91,8 +93,8 @@
     height: 12px;
     border-radius: 50%;
     background-color: rgb(61, 61, 61);
-    left: 0px;
-    top: 0px;
+    left: -27px;
+    top: -27px;
     z-index: 26;
 }
 

@@ -1,3 +1,125 @@
+class Tool{
+    constructor(name, parentDOM, iconImg, subContent, clickFunction){ // clickFunction
+        this.name = name;
+        this.parentDOM = parentDOM;
+        this.iconImg = iconImg;
+        
+        // this.DOMId = DOMId;
+        // this.DOM = document.getElementById(DOMId);
+       
+        let template = document.getElementById('materialize_template_tool');
+        let templateDiv = template.content.querySelector('div');
+        let toolContent = document.importNode(templateDiv, true);
+        this.DOM = toolContent;
+        this.DOM.id = this.name;
+
+        this.parentDOM.appendChild(this.DOM);
+        this.setMainButtonImage(this.iconImg, false)
+
+        this.visible = false;
+
+        this.clickFunction = clickFunction;
+
+        this.subContent = subContent;
+        this.subContentDOMs = [];
+
+       
+        
+        let appContainer = document.getElementsByClassName('app_container')[0];
+        appContainer.appendChild(toolContent);
+
+        this.DOM.addEventListener('pointerdown', (ev) => {ev.stopPropagation()})
+        this.DOM.addEventListener('pointerup', (ev) => {
+            if(subContent){
+                this.showSubContent(); // if there is subcontent show it
+            } else {
+                this.clickFunction(); // if there is no subcontent (one icon tool) execute function passed to the constructor
+            }            
+        })
+    }
+
+    setMainButtonImage(imgSrc, materialize){
+        if (materialize){
+            this.DOM.querySelector('i').innerHTML(imgSrc)
+        } else {
+            let i =this.DOM.querySelector('i')
+            let img = document.createElement('img')
+            img.classList.add('material-icons')
+            img.id = 'app_tool_img';
+            img.src = imgSrc;
+            i.parentNode.replaceChild(img, i)
+        }
+        
+    }
+
+    renderSubcontent(){
+        //this.subContent = subContent; //[name, img, imgOrigin] - array of objects with name and image src and img origin (src or materialize) of subcontent elements
+        this.subContentDOM = this.DOM.querySelector('ul');
+        for(let elem of this.subContent){
+            let li = document.createElement('li');
+            this.subContentDOM.appendChild(li);
+
+            let a = document.createElement('a');
+            a.classList.add('btn-floating', 'white');
+            li.appendChild(a);
+
+            let img = null;
+            if(elem.imgOrigin == 'src'){
+                img = document.createElement('img');
+                img.src = elem.img;
+                img.classList.add('tool_image')
+            } else if (elem.imgOrigin == 'materialize'){
+                img = document.createElement('i');
+                img.classList.add('small', 'material-icons', 'tool_image');
+                img.innerHTML = elem.img;
+            }
+            a.appendChild(img);
+
+            // let toolName = document.createElement('span');
+            // toolName.innerHTML = elem.name;
+            // toolName.classList.add('tool_name')
+            // this.subContentDOM.appendChild(toolName);
+            
+            this.subContentDOMs.push(li)
+        }
+
+        let options = {
+            direction: 'top',
+            hoverEnabled: false,
+            toolbarEnabled: false
+        }
+        let instances = M.FloatingActionButton.init(this.DOM, options);
+
+        return this.subContentDOMs; // return these in the same order as the subContent array elems to attach event listeners
+    }
+
+    setSubcontentAvailableMarker(){
+        this.DOM.classList.add('tool_subcontent_available')
+    }
+
+    showTool(){
+        this.DOM.classList.add(this.DOMId + '_visible');
+        this.visible = true;
+    }
+
+    hideTool(){
+        this.DOM.classList.remove(this.DOMId + '_visible');
+        this.visible = false;
+    }
+
+    showSubContent(){
+        this.subContentDOM.classList.add(this.DOMId + '_subcontent_visible');
+    }
+
+    hideSubcontent(){
+        this.subContentDOM.classList.remove(this.DOMId + '_subcontent_visible');
+    }
+
+    toggleSubcontent(){
+        this.subContentDOM.classList.toggle(this.DOMId + '_subcontent_visible');
+    }
+}
+
 function app_pane(name, type, parentDOM, callingElement, css_class){
     this.name = name;
     this.type = type;
@@ -92,7 +214,7 @@ app_pane.prototype.set_location = function(){
     this.DOM.style.top = adjustedY + 'px';
 }
 
-app_pane.prototype.render = function(parentDOM){
+app_pane.prototype.render = function(parentDOM, options){
     if (this.type == 'popup menu'){
         //render container
         let menuContainer = document.createElement('div');
@@ -138,6 +260,12 @@ app_pane.prototype.render = function(parentDOM){
     } else if(this.type == 'project details'){
         this.DOM = this.renderDetailsDialog(parentDOM);
         return this.DOM;
+    } else if(this.type == 'design plan details'){
+        this.DOM = this.renderDetailsDialog(parentDOM);
+        return this.DOM;
+    } else if(this.type == 'design plan addition'){
+        this.returbDOMs = this.renderDesignPlanAdditionDialog(parentDOM, options);
+        return this.returbDOMs;
     }
 }
 
@@ -189,8 +317,10 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
     closeButton.ID = 'dialog_close_button';
     dialog.appendChild(closeButton);
     
-    closeButton.addEventListener('pointerdown', function(ev){
+   // closeButton.addEventListener('pointerdown', function(ev){ev.stopPropagation();ev.preventDefault();});
+    closeButton.addEventListener('pointerup', function(ev){
         ev.stopPropagation();
+        ev.preventDefault();
         // when dialog is closed save changed data
         for(let key in this.callingElement.associatedObject.parameters){
             let parameter = this.callingElement.associatedObject.parameters[key];
@@ -224,12 +354,18 @@ app_pane.prototype.renderDetailsDialog = function(parentDOM){
                         }       
                         this.callingElement.associatedObject.parameters.noteHistory.value.unshift(noteHistoryEntry);       
                     }
+
+                    if (key == 'formFactor'){
+                        this.callingElement.updateIcon();
+                    }
                 }
             }
             
             
         }
         this.DOM.parentNode.removeChild(this.DOM);
+        this.DOM = null;
+        
     }.bind(this))
 
     // Materialize tabs
@@ -527,4 +663,142 @@ app_pane.prototype.renderDeletionConfirmationDialog = function(parentDOM){
 //       <a href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>
 //     </div>
 //   </div>
+}
+
+app_pane.prototype.renderDesignPlanAdditionDialog = function(parentDOM, options){
+    // options example
+    // options = {
+    //     header: true,
+    //     headerEdit: true,
+    //     headerMessage: true
+    // }
+
+    let returnDOMS = {}
+
+    let caller = this.callingElement;
+
+    let dialog = document.createElement('div');
+    dialog.classList.add('details_dialog');
+    parentDOM.appendChild(dialog);
+
+    // handle events on the dialog to prevent from bubbling
+    dialog.addEventListener('pointerdown', function(ev){
+        ev.stopPropagation();
+    })
+    dialog.addEventListener('pointerup', function(ev){
+        ev.stopPropagation();
+    })
+    dialog.addEventListener('pointermove', function(ev){
+        ev.stopPropagation();
+    })
+    
+    //define dialog close button
+    let closeButton = document.createElement('span');
+    closeButton.innerHTML = '&times;';
+    closeButton.ID = 'dialog_close_button';
+    dialog.appendChild(closeButton);
+    
+   
+    returnDOMS.closeButton = closeButton;
+
+    // Materialize tabs
+    let fieldsContainer = document.createElement('div');
+    
+    let tabContentDivs = null;
+    let noTabs = false;
+    //let tabs = ['install','info', 'checklist', 'options']
+    if(caller.hasOwnProperty('tabs') && Array.isArray(caller.tabs) && caller.tabs.length>0){
+        tabContentDivs = createMaterializeTabs(fieldsContainer,caller.tabs) // tabContentDivs['container'] - whole element, tabContentDivs[tabs[0]] - tab 1 ...
+    } else {
+        noTabs = true;
+        tabContentDivs = {
+            'main': fieldsContainer
+        }
+    }
+
+    let rowDOMs = {}; // for rendering few fields in one row
+    for(let k in caller.parameters){
+        let parameter = caller.parameters[k];
+        let id = this.name + '__' + k;
+        // let elementClass = 'dialog_title';
+        let value = parameter.value;
+        let valueOptions = parameter.hasOwnProperty('options') ? parameter.options : null;
+        let label = parameter.hasOwnProperty('display') ? parameter.display : null;
+        let visible = parameter.show;
+        let editable = parameter.editable;
+        let htmlTag = parameter.htmlElement;
+        let htmlTagOption = parameter.hasOwnProperty('htmlElementOption') ? parameter.htmlElementOption : '';
+        let wrapperDOMClass = parameter.hasOwnProperty('wrapperDOMClass') ? parameter.wrapperDOMClass : 'input-field col s12';
+
+        let tabName = parameter.hasOwnProperty('tab') ? caller.tabs[parameter.tab] : 'main';
+
+        if(parameter.hasOwnProperty('header') && options.header){
+            let headerContainer = renderHTMLElement(dialog, '', 'div', '', '', '', '', '', '')
+            let header = renderHTMLElement(headerContainer, k, parameter.htmlElement, '', id, 'dialog_title', value, valueOptions, '')
+            
+            if(options.headerEdit || options.headerMessage){
+                let optionIconsContainer = renderHTMLElement(headerContainer, '', 'div', '', '', '', '', '', '');
+                if(options.headerEdit){
+                    let edit = renderHTMLElement(optionIconsContainer, '', 'i', '', id + '__edit', 'small material-icons', 'edit', '', '')
+                    returnDOMS.edit = edit;
+                }
+
+                if(options.headerMessage){
+                    let message = renderHTMLElement(optionIconsContainer, '', 'i', '',  'map_object_details_dialog__message', 'small material-icons', 'message', '', '')
+                    returnDOMS.message = message;
+                }
+            } 
+            continue;  
+        }
+        
+        // next if is for rendering few fields in one row if the parameter.row is defined
+        let htmlWrapperDivRow = null;
+        if(parameter.hasOwnProperty('row'))
+        {
+            if (general_validation(rowDOMs[parameter.row])){
+                htmlWrapperDivRow = rowDOMs[parameter.row];
+            } else {
+                htmlWrapperDivRow = renderHTMLElement(tabContentDivs[tabName], '', 'div', '', '', 'row', '', '', '','');
+                rowDOMs[parameter.row] = htmlWrapperDivRow;
+            }             
+        } else {
+            htmlWrapperDivRow = renderHTMLElement(tabContentDivs[tabName], '', 'div', '', '', 'row', '', '', '','');
+        }
+
+        let htmlWrapperDivInputField = renderHTMLElement(htmlWrapperDivRow, '', 'div', '', '', wrapperDOMClass, '', '', '','');
+        let htmlElementDOM = renderHTMLElement(htmlWrapperDivInputField, k, htmlTag, htmlTagOption, id, 'validate', value, valueOptions, label, editable);
+        parameter.DOM = htmlElementDOM;
+
+        returnDOMS[k] = htmlElementDOM;
+    }
+   
+    dialog.appendChild(fieldsContainer);
+    
+
+    //Materialize init
+    var elems = document.querySelectorAll('select');
+    let materializeOptions= {}
+    var instances = M.FormSelect.init(elems, materializeOptions);
+    M.updateTextFields();    
+
+    if(!noTabs){        
+        materializeOptions = {
+            'duration': 300,
+            'onShow': null,
+            'swipeable': false,
+            'responsiveTreshold': 300
+        }
+        var tabsInstance = M.Tabs.init(tabContentDivs['container'],materializeOptions);
+        //fix materialize tab height
+        if (options.swipeable){
+            document.querySelector('.tabs-content.carousel.carousel-slider').style.height = '700px';
+            document.querySelector('.tabs-content.carousel.carousel-slider').style.overflow = 'scroll';
+        }
+        
+        tabsInstance.updateTabIndicator();
+        //M.AutoInit();
+    }
+    
+    returnDOMS.dialog = dialog;
+    return returnDOMS;
 }

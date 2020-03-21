@@ -1,6 +1,294 @@
 // only top most menus are defined in index.html, the rest is created dynamically
 // menus may be stacked 
 
+//new appLogMessage('app_menus.js', 'loaded', 'message').showAppMessage();
+
+class TopProjectMenu{
+    constructor(project){
+        this.project = project;
+        this.associatedObject = project;
+        this.detailsDialog = null;
+
+        this.containerDOM = document.getElementById('top_menu');
+        this.nameDOM = document.getElementById('top_menu_project_name');
+        this.projectEditIconDOM = document.getElementById('top_menu_edit_project');
+       
+        this.projectEditIconDOM.addEventListener('pointerup', ev => {ev.stopPropagation()});
+        this.projectEditIconDOM.addEventListener('pointerdown', ev => {
+            console.log('change project data tapped')
+            this.showProjectDetailsDialog()
+            })       
+    }
+
+    showProjectDetailsDialog(){
+        this.detailsDialog = new app_pane('project_details_dialog', 'project details', this.project.activeDesignPlan.parentDOM, this, 'project_details_dialog'); // (name, DOM_ID)    
+        this.detailsDialog.render(this.project.activeDesignPlan.parentDOM);
+    }
+}
+
+
+class DesignPlanMenus{
+   
+    constructor(designPlan){
+        this.designPlan = designPlan;
+        this.associatedObject = designPlan;
+        this.detailsDialog = null;
+
+        this.topBar = {
+            DOM : document.getElementById('design_plan_top_bar'),
+            nameDOM : document.getElementById('top_design_plan_name'),
+            editDOM : document.getElementById('design_plan_edit'),
+            resetDOM : document.getElementById('design_plan_reset'),
+            addDOM : document.getElementById('design_plan_new')
+        }
+
+        this.navigator = {
+            DOM : document.getElementById('design_plan_navigator_floating'),
+            previousDOM : document.getElementById('design_plan_previous'),
+            nextDOM : document.getElementById('design_plan_next'),
+            countDOM : document.getElementById('design_plan_count')
+        }
+
+        this.zoom // maybe later
+
+        //addition dialog fields
+        this.designPlanAddDialog = {
+            tabs: [],
+            parameters: {
+                'header': {
+                    header: true,
+                    display: 'new page',
+                    value: 'new page',
+                    htmlElement: 'h3',
+                    DOM: null,
+                    show: true,
+                    editable: false
+                },
+        
+                'name': {
+                    display: 'name',
+                    value: this.designPlanname,
+                    htmlElement: 'input',
+                    htmlElementOption: 'text',
+                    // wrapperDOMClass: 'input-field col s6',
+                    DOM: null,
+                    show: true,
+                    editable: true         
+                },
+
+                'planImageFile': {
+                    display: 'select design plan image',
+                    value: 'mapImageSrc',
+                    htmlElement: 'input',
+                    htmlElementOption: 'file',
+                    DOM: null,
+                    show: true,
+                    editable: true
+                },
+
+                'planImageDisplay': {
+                    display: 'image',
+                    value: 'mapImageSrc',
+                    htmlElement: 'img',
+                    wrapperDOMClass: 'input-field col s12 designPlan_addition_dialog_image',
+                    DOM: null,
+                    show: true,
+                    editable: true
+                },
+
+                'submitButton': {
+                    display: '',
+                    value: 'save',
+                    htmlElement: 'input',
+                    htmlElementOption: 'button',
+                    DOM: null,
+                    show: true,
+                    editable: true
+                }
+            }
+        }
+
+        this.topBar.editDOM.addEventListener('pointerdown', ev => {ev.stopPropagation()})
+        this.topBar.editDOM.addEventListener('pointerup', ev => {
+            ev.stopPropagation();
+            this.showDesignPlanDetailsDialog();
+        })     
+        
+        this.topBar.resetDOM.addEventListener('pointerdown', ev => {ev.stopPropagation()})
+        this.topBar.resetDOM.addEventListener('pointerup', ev => {
+            ev.stopPropagation();
+            this.designPlan.resetView();
+        }) 
+
+        this.topBar.addDOM.addEventListener('pointerdown', ev => {ev.stopPropagation()})
+        this.topBar.addDOM.addEventListener('pointerdown', ev => {
+            ev.stopPropagation();
+            this.showDesignPlanAdditionDialog();
+        })
+
+        this.navigator.previousDOM.addEventListener('pointerdown', ev => {ev.stopPropagation()})
+        this.navigator.previousDOM.addEventListener('pointerup', ev => {
+            ev.stopPropagation();
+            this.showPreviousDesignPlan();
+        })
+
+        this.navigator.nextDOM.addEventListener('pointerdown', ev => {ev.stopPropagation()})
+        this.navigator.nextDOM.addEventListener('pointerup', ev => {
+            ev.stopPropagation();
+            this.showNextDesignPlan();
+        })
+
+        this.menusVisibility = this.menusVisibility();
+        
+    }
+
+    changeDesignPlan(designPlan){
+        this.designPlan = designPlan;
+        this.associatedObject = designPlan;
+    }
+    
+    showDesignPlanDetailsDialog(){
+        this.detailsDialog = new app_pane('designPlan_details_dialog', 'design plan details', this.designPlan.parentDOM, this, 'designPlan_details_dialog'); // (name, DOM_ID)    
+        this.detailsDialog.render(this.designPlan.parentDOM);
+    }
+
+    showDesignPlanAdditionDialog(){
+        this.additionDialog = new app_pane('designPlan_addition_dialog', 'design plan addition',  this.designPlan.parentDOM, this.designPlanAddDialog, 'designPlan_addition_dialog'); // (name, DOM_ID)    )
+        this.additionDialog.elements = this.additionDialog.render(this.designPlan.parentDOM, {header:true, headerMessage: false, headerEdit: false});
+        
+        this.additionDialog.elements['closeButton'].addEventListener('pointerdown', ev => {ev.stopPropagation();})
+        this.additionDialog.elements['closeButton'].addEventListener('pointerup', ev => {
+            ev.stopPropagation();
+            let dialog = this.additionDialog.elements['dialog'];
+            dialog.parentNode.removeChild(dialog);
+        })
+
+        this.additionDialog.elements['planImageFile'].addEventListener('change', ev => {
+            let planImageDisplay = this.additionDialog.elements['planImageDisplay'];
+            let img = URL.createObjectURL(ev.target.files[0]);
+            planImageDisplay.src = img;           
+        })
+
+        this.additionDialog.elements['submitButton'].addEventListener('pointerdown', ev => {ev.stopPropagation();})
+        this.additionDialog.elements['submitButton'].addEventListener('pointerup', ev => {
+            ev.stopPropagation();
+
+            let name = this.additionDialog.elements['name'].value;
+            let imgSrc = this.additionDialog.elements['planImageDisplay'].src;
+            let dialog = this.additionDialog.elements['dialog'];
+            dialog.parentNode.removeChild(dialog);
+
+            let designPlan = app.activeProject.createDesignPlan(name, imgSrc);       
+            designPlan.show();     
+        })
+    }
+
+    showNextDesignPlan(){
+        if(this.designPlan.nextPlan){
+           
+            this.designPlan = this.designPlan.nextPlan;
+            this.designPlan.show();
+            //this.updateNavigatorCount(); -- is called in .show()
+
+            if(!this.designPlan.nextPlan){
+                this.navigator.nextDOM.disabled = true;
+            }
+            if(!this.designPlan.previousPlan){
+                this.navigator.previousDOM.disabled = false;
+            }
+        }
+        
+    }
+
+    showPreviousDesignPlan(){
+        if(this.designPlan.previousPlan){
+            //let currentPlan = this.designPlan;
+            this.designPlan = this.designPlan.previousPlan;
+            this.designPlan.show();
+            
+            //this.updateNavigatorCount(); -- is called in .show() 
+
+            if(!this.designPlan.previousPlan){
+                this.navigator.previousDOM.disabled = true;
+            }
+
+            if(!this.designPlan.nextPlan){
+                this.navigator.nextDOM.disabled = false;
+            }
+        }
+        
+        
+    }
+
+    updateNavigatorCount(){
+        let currentPlanNumber = this.designPlan.number;
+        let planCount = this.designPlan.parentProject.designPlansCount;
+
+        this.navigator.countDOM.innerHTML = `${currentPlanNumber} of ${planCount}`;
+    }
+
+
+    // I had IIFE here but it did not work on Safari due to lack of support for public class fields
+    // menusVisibility = (()=>{
+    //     ... same body as below
+    // })
+
+    menusVisibility(){
+        let returnValue = {};
+        returnValue.topBar = {
+            set: (visible) => {
+                visible ? this.topBar.DOM.classList.remove('design_plan_menus_hide') :
+                          this.topBar.DOM.classList.add('design_plan_menus_hide');
+            },
+
+            toggle: () => {
+                this.topBar.DOM.classList.toggle('design_plan_menus_hide');
+            }
+        };
+
+        returnValue.navigator={
+            set: (visible) => {
+                visible ? this.navigator.DOM.classList.remove('design_plan_menus_hide') :
+                          this.navigator.DOM.classList.add('design_plan_menus_hide');
+            },
+
+            toggle: () => {
+                this.navigator.DOM.classList.toggle('design_plan_menus_hide');
+            }
+        };
+
+        returnValue.all= {
+            set: (visible) => {
+                returnValue.topBar.set(visible);
+                returnValue.navigator.set(visible);
+            },
+
+            toggle: () => {
+                returnValue.topBar.toggle();
+                returnValue.navigator.toggle();
+            }
+        }
+        return returnValue;
+    }
+
+    allMenusToggleVisibility(){
+        this.topMenuToggleVisibility();
+        this.navigatorToggleVisibility();
+    }
+
+    topMenuToggleVisibility(){
+        this.topBar.DOM.classList.toggle('design_plan_menus_hide');
+    }
+
+    navigatorToggleVisibility(){
+        this.navigator.DOM.classList.toggle('design_plan_menus_hide');
+    }
+
+   // updateDesignPlanName()
+
+
+}
+
 let bottomMenuJSON = { 
     'name': 'bottom menu',   
     'DOM_ID': 'bottom_menu', 
@@ -56,8 +344,7 @@ let bottomMenuJSON = {
                         'DOM_Class': 'bottom_menu_list_item_submenu',
                         'switch': 1,
                         'router': 2,
-                        'injector': 3,
-                        'antenna': 4,
+                        'injector': 3,                        'antenna': 4,
                         'fiber': 2,
                     }
                 },
@@ -139,8 +426,8 @@ let bottomMenuJSON = {
 
 }
 
-function CreateAppMenu(){
-    let appMenuInstance = new appMenu(bottomMenuJSON.name, bottomMenuJSON.DOM_ID, bottomMenuJSON.DOM_Class);
+function CreateAppMenu(callback){ // callBack is called every time a menu, subMenu or menuItem are clicked with a clicked item name
+    let appMenuInstance = new appMenu(bottomMenuJSON.name, bottomMenuJSON.DOM_ID, bottomMenuJSON.DOM_Class, callback);
     let bottomMenuSubmenu = new subMenu('mainSubmenu', bottomMenuJSON.items.DOM_Class, appMenuInstance);
     if (bottomMenuJSON.items){
        
@@ -187,7 +474,7 @@ function CreateAppMenu(){
 
 }
 
-function appMenu(name, DOM_ID, DOM_Class){
+function appMenu(name, DOM_ID, DOM_Class, callback){
     this.name = name;
     this.DOM_ID = DOM_ID; //unique identifier of this menu
     this.DOM = document.getElementById(this.DOM_ID);  
@@ -198,6 +485,7 @@ function appMenu(name, DOM_ID, DOM_Class){
     this.activeSubmenu = null; // for showing/hiding submenu card
     this.activeMenuItem = null; // what 'end' item is active
     this.clickedPath = '';
+    this.callback = callback
 }
 
 appMenu.prototype.addSubmenu = function(subMenu){
@@ -369,6 +657,7 @@ function menuItem(name, parent, icon_src){
 
 menuItem.prototype.addPointerDownListener = function(){
     this.DOM.addEventListener('pointerdown',  function(ev){
+        this.topParent.callback(this.name, this.subMenu ? this.subMenu.items : null); // notify the menu owning (app) of menu being clicked
         ev.stopPropagation();
         if(this.parent.parent === this.topParent){// check if this subMenu is the top subMenu - the bottom bar
             if(this.topParent.activeTopSubmenuItem && this.topParent.activeTopSubmenuItem == this){ // this item's submenu is already visible

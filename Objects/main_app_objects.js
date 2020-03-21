@@ -4,8 +4,11 @@ function application(){
     this.activeProject = null;
     this.currentUser = null;
     this.appMenus = {};
+    this.appTools = {};
     this.appMessageDOM = document.getElementById("app_message");
     this.customEvents = {};
+
+    this.appLogs = [];
 }
 
 application.prototype.addUser = function(user){
@@ -33,10 +36,6 @@ application.prototype.setCurrentUser = function(user){
     userEmail.innerHTML = '<span class="white-text email">' + this.currentUser.email + '</span>'
 }
 
-application.prototype.addAppMenu = function(menu){
-    this.appMenus[menu.name] = menu;
-}
-
 application.prototype.setActiveProject = function(project){
     this.activeProject = project;
     this.updateProjectNameDisplay();    
@@ -46,15 +45,31 @@ application.prototype.updateProjectNameDisplay = function(){
     document.getElementById("top_menu_project_name").innerHTML = this.activeProject.name;
 }
 
+application.prototype.addAppMenu = function(menu){
+    this.appMenus[menu.name] = menu;
+}
+
+application.prototype.addAppTool = function(tool){
+    this.appTools[tool.name] = tool;
+}
+
 application.prototype.setAppMessage = function(message){
     this.appMessageDOM.innerHTML = message;
     this.appMessageDOM.display = 'block';
+    this.appMessageDOM.classList.add('app_message_show')
 }
+
 
 application.prototype.clearAppMessage = function(){
     this.appMessageDOM.innerHTML = '';
     this.appMessageDOM.display = 'none';
 }
+
+application.prototype.addLogMessage = function(appMessage){
+    this.appLogs.push(appMessage)
+}
+
+
 
 
 function user(fName, lName, email, phoneNumber = '773-767-5400', permissions) {
@@ -93,50 +108,13 @@ user.prototype.setPermission = function(permission, value){
     this.permissions[permission] = value;
 }
 
-class TopProjectMenu{
-    constructor(project){
-        this.project = project;
-        this.containerDOM = document.getElementById('top_menu');
-        this.nameDOM = document.getElementById('top_menu_project_name');
-        this.projectEditIconDOM = document.getElementById('top_menu_edit_project');
-       
-        this.associatedObject = project;
-        this.detailsDialog = null;
-        
-        this.projectEditIconDOM.addEventListener('pointerdown', ev => {
-            console.log('change project data tapped')
-            this.showProjectDetailsDialog()
-            // let newName = prompt('Enter new project name: ', this.project.name);
-            //     if(newName == ''){
-            //         alert('Name can\'t be empty!');
-            //     } else if(newName != null) {                   
-            //         this.updateProjectNameDisplay(newName);
-            //         this.project.name = newName;
-            //     }
-                
-            })
-       
-    }
-
-    updateProjectNameDisplay(name){
-        if (name.length > 11){
-            this.nameDOM.classList.add('smaller_header_font')
-        } else {
-            this.nameDOM.classList.remove('smaller_header_font')
-        }
-        this.nameDOM.innerHTML = name;
-    }
-
-    showProjectDetailsDialog(){
-        this.detailsDialog = new app_pane('project_details_dialog', 'project details', this.project.activeDesignPlan.parentDOM, this, 'project_details_dialog'); // (name, DOM_ID)    
-        this.detailsDialog.render(this.project.activeDesignPlan.parentDOM);
-    }
-}
 
 function project(name, createdBy, cretedDate = formatDateTime(new Date())){
     this.parentApp = null;
     this.name = name;
     this.designPlans = {};
+    this.designPlansArray = []; // for easier navigation
+    this.designPlansCount = 0;
     this.activeDesignPlan = null;
     this.createdBy = createdBy;
     this.createdDate = cretedDate;
@@ -144,7 +122,8 @@ function project(name, createdBy, cretedDate = formatDateTime(new Date())){
     this.projectRoles = ['project manager', 'team leader', 'technician','purchasing','account exec','support'];
     this.projectUsers = {};
     this.equipment = {};
-    this.topMenu = null;
+    this.topMenuBar = null;
+    this.designPlanMenuBar = null;
 
     this.tabs = ['info', 'customer']
     this.parameters = {
@@ -195,11 +174,6 @@ function project(name, createdBy, cretedDate = formatDateTime(new Date())){
             editable: false,
             tab: 0               
         },
-
-        
-
-
-
     }
     //example
     // this.projectUsers['MichalWeglowski'] = {
@@ -217,12 +191,54 @@ project.prototype.setParentApp = function(app){
 }
 
 project.prototype.setTopMenu = function(topMenu){
-    this.topMenu = topMenu;
+    this.topMenuBar = topMenu;
+}
+
+project.prototype.setDesignPlanMenuBar = function(menuBar){
+    this.designPlanMenuBar = menuBar;
+}
+
+project.prototype.createDesignPlan = function(name, imgSrc){
+
+    let lastDesignPlan = null;
+    if(this.designPlansCount>0){
+        lastDesignPlan = this.designPlansArray[this.designPlansCount-1];
+    }    
+
+    let template = document.getElementById('template_design_plan');
+    let templateDiv = template.content.querySelector('div');
+    let content = document.importNode(templateDiv, true);
+    
+    let appContainer = document.getElementsByClassName('app_container')[0];
+    appContainer.appendChild(content);
+
+    content.id = name;
+
+    let designPlanInstance = new designPlan(name, content.id);
+    designPlanInstance.loadMapImage(imgSrc)
+    designPlanInstance.setParentProject(this)            
+    this.addDesignPlan(designPlanInstance);
+    this.setActiveDesignPlan(designPlanInstance);
+
+    designPlanInstance.addListeners();
+    this.designPlanMenuBar.changeDesignPlan(designPlanInstance);
+
+    //for navigation
+   
+    if(lastDesignPlan){
+        designPlanInstance.previousPlan = lastDesignPlan;
+        lastDesignPlan.nextPlan = designPlanInstance;
+    }
+
+    return designPlanInstance;
 }
 
 project.prototype.addDesignPlan = function(designPlan){
     this.designPlans[designPlan.name] = designPlan;
+    this.designPlansArray.push(designPlan);
     designPlan.setParentProject(this);
+    this.designPlansCount++;
+    designPlan.number = this.designPlansCount;
 }
 
 project.prototype.setActiveDesignPlan = function(designPlan){
@@ -254,8 +270,20 @@ project.prototype.addEquipment = function(equipment){
 }
 
 //it's like a map i.e 1st fl, basement etc
-function designPlan(name, designPlanDOMID){
+function designPlan(name, designPlanDOMID, createdBy = app.currentUser, createdDate = formatDateTime(new Date())){
     this.name = name;
+    this.number = 0;
+    this.createdDate = createdDate;
+    this.createdBy = createdBy;
+    this.lastModifiedDate = '';
+    this.lastModifiedBy = null;
+
+    //below is for navigation between the design plans
+    this.previousPlan = null;
+    this.nextPlan = null;
+
+    this.modificationLog = {} // for later implementation
+
     this.DOM = document.getElementById(designPlanDOMID);
     this.parentDOM = this.DOM.parentElement;
     this.mapImageSrc = '';
@@ -288,17 +316,100 @@ function designPlan(name, designPlanDOMID){
     this.touch2PointersInitialDistance = 0;   
 
     this.DOM.style.transformOrigin = 0 + 'px ' + 0 + 'px';
+
+    this.tabs = ['info', 'parts list']
+    this.parameters = {
+        'name': {
+            header: true,
+            display: 'design plan name',
+            value: this.name,
+            htmlElement: 'h3',
+            DOM: null,
+            show: true,
+            editable: true
+        },
+
+        'dateCreated': {
+            display: 'created date',
+            value: this.createdDate,
+            htmlElement: 'input',
+            htmlElementOption: 'text',
+            // wrapperDOMClass: 'input-field col s6',
+            DOM: null,
+            show: true,
+            editable: false,
+            tab: 0               
+        },
+
+        'createdBy': {
+            display: 'created by',
+            value: this.createdBy.fullName,
+            htmlElement: 'input',
+            htmlElementOption: 'text',
+            // wrapperDOMClass: 'input-field col s6',
+            DOM: null,
+            show: true,
+            editable: false,
+            tab: 0               
+        },
+
+        'dateLastModified': {
+            display: 'last modified date',
+            value: this.lastModifiedDate,
+            htmlElement: 'input',
+            htmlElementOption: 'text',
+            // wrapperDOMClass: 'input-field col s6',
+            DOM: null,
+            show: true,
+            editable: false,
+            tab: 0               
+        },
+
+        'lastModifiedBy': {
+            display: 'last modified by',
+            value: this.lastModifiedBy,
+            htmlElement: 'input',
+            htmlElementOption: 'text',
+            // wrapperDOMClass: 'input-field col s6',
+            DOM: null,
+            show: true,
+            editable: false,
+            tab: 0               
+        }
+    }
+}
+
+designPlan.prototype.show = function(){
+    for(let k in this.parentProject.designPlans){        
+        let designPlan = this.parentProject.designPlans[k];
+        if(designPlan == this) continue;
+        designPlan.hide();
+    }
+    this.DOM.classList.add('design_plan_visible');
+    this.parentProject.setActiveDesignPlan(this)
+    this.parentProject.designPlanMenuBar.updateNavigatorCount();
+    //change context for the design plan menu to this design plan (so all the manu bar functionality was related to this design plan)
+    
+    
+}
+
+designPlan.prototype.hide = function(){
+    this.DOM.classList.remove('design_plan_visible');
 }
 
 designPlan.prototype.loadMapImage = function(mapImage){
     this.mapImageSrc = mapImage;
     let query = '#map_image_plane>img'
-    let dom = document.querySelector(query)
+    let dom = this.DOM.querySelector(query)
     dom.src = this.mapImageSrc;
 }
 
 designPlan.prototype.setParentProject = function(project){
     this.parentProject = project;
+}
+
+designPlan.prototype.setTopMenu = function(topMenu){
+    this.topMenu = topMenu;
 }
 
 designPlan.prototype.saveTransformValues = function(x,y,scale){
@@ -313,6 +424,51 @@ designPlan.prototype.saveTransformValues = function(x,y,scale){
     if(scale != ''){
         this.transformValues.scale = scale;
     }
+}
+
+designPlan.prototype.addListeners = function(){
+    this.DOM.addEventListener('singleTap', ev => {
+        ev.stopPropagation();
+        console.log(`design ${this.name} plan tapped`)
+
+        this.parentProject.designPlanMenuBar.menusVisibility.all.set(false);
+
+        let objectType = '';
+        let objectSubType =- '';
+        if(general_validation(app.appMenus['bottom menu'].clickedPath)){
+            objectType = app.appMenus['bottom menu'].clickedPath.split('/').slice(-2)[0];
+            if(app.appMenus['bottom menu'].hasOwnProperty('activeMenuItem')){
+                objectSubType = app.appMenus['bottom menu'].activeMenuItem.name;
+
+                // app.setAppMessage('test');
+            if (general_validation(objectType) && general_validation(objectSubType)){
+                let equipment = equipmentSelection(objectType, objectSubType);
+
+                let mapObjectInstance = new mapObject(equipment,'', 'Images/mapObjectImages/CameraWithFOV.png');
+                mapObjectInstance.setParentDesignPlan(app.activeProject.activeDesignPlan);
+                //mapObjectInstance.setTypeAndSubType(objectType, objectSubType);  // i.e. surveillance, camera
+                //mapObjectInstance.generateIDAndMapSymbol();
+                //mapObjectInstance.setName(); // gets name from the ID, name = subType + following number of this subType which is already on the design plan
+                mapObjectInstance.assignToLayer();
+                
+                mapObjectInstance.insertToDesignPlan(ev.detail.eventData.pageX, ev.detail.eventData.pageY);//ev.pointers[0].pageX, ev.pointers[0].pageY)//
+                mapObjectInstance.setClick_TapListener();
+                mapObjectInstance.setMoveListener();
+            }
+            
+        }      
+       
+       } else {
+        
+       }
+        
+    })
+
+    this.DOM.addEventListener('doubleTap', ev => {
+        ev.stopPropagation();
+        //this.parentProject.designPlanMenuBar.allMenusToggleVisibility();
+        this.parentProject.designPlanMenuBar.menusVisibility.all.set(true);
+    })
 }
 
 designPlan.prototype.addMapObject = function(mapObject){
@@ -452,6 +608,13 @@ designPlan.prototype.applyTransform = function(){
     this.DOM.style.transform = `translate(${this.moveXValueInProgress}px, ${this.moveYValueInProgress}px) scale(${this.scaleInProgress})`;
 }
 
+designPlan.prototype.resetView = function(){
+    this.moveXValueInProgress = 0;
+    this.moveYValueInProgress = 0;
+    this.scaleInProgress = 1;
+    this.applyTransform();
+}
+
 designPlan.prototype.transformOrigin = function(x, y){
     var designPlanRect = this.DOM.getBoundingClientRect();   
 
@@ -532,7 +695,7 @@ function mapObject(equipment, ID='', mapIconSrc='', type='', subType='', locatio
     this.ID = 'map_object__' + this.type + '__' + this.subType + '__' + equipment.equipmentNumber; // for DOM
     this.mapSymbol = this.subType.substring(0,1).toUpperCase() + equipment.equipmentNumber;
     this.mapNumber = equipment.equipmentNumber;
-    this.mapIconSrc = mapIconSrc;    
+    this.mapIconSrc = equipment.icons[equipment.defaultIcon];    
    
     this.locationRect = locationRect; // location on the map in pixels
     this.onMap = onMap; // determines if the object is on the map or side menu
@@ -677,6 +840,10 @@ mapObject.prototype.updateDisplayedName = function(){
     if(this.displayElements['name'].DOM){
         this.displayElements['name'].DOM.innerHTML = this.name;
     }
+}
+
+mapObject.prototype.updateIcon = function(){
+    this.DOM.querySelector('img').src = this.associatedObject.icons[this.associatedObject.parameters.formFactor.value];
 }
 
 mapObject.prototype.setClick_TapListener = function(){

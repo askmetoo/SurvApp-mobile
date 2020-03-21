@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="GUI/app_menus.css">
     <link rel="stylesheet" href="Objects/map_elements.css">
     <link rel="stylesheet" href="GUI/app_panes.css">
+    <link rel="stylesheet" href="GUI/app_tools.css">
     <!-- Materialize Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -24,6 +25,23 @@
 </head>
 
 <body>
+  <div class="app_message" id="app_message">
+    <span>app message</span>
+    <span id="app__message_close_button">&times;</span>
+  </div>
+
+  <!-- based on materialize floating action button -->
+  <template id="materialize_template_tool"> 
+    <div class='fixed-action-btn app_tool'>
+      <a class="btn-floating btn-medium red">
+      <i class="large material-icons"></i>
+      </a>
+      <ul class="app_tool">
+      </ul>      
+    </div>
+  </template>
+  
+
     <ul id="slide-out" class="sidenav">
         <li><div class="user-view">
           <div class="background">
@@ -38,24 +56,38 @@
         <li><div class="divider"></div></li>
         <li><a class="subheader">Recently opened</a></li>
         <li><a class="waves-effect" href="#!">Project 1</a></li>
-      </ul>
-    <div class="app_container">
+    </ul>
 
-       
+    <div class="app_container">      
 
         <div id="top_menu">        
               <span id="top_menu_project_name"></span>
               <i class = "small material-icons" id="top_menu_edit_project">edit</i>
-              <a href="#" id="hamburger_menu_button" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>                    
-            
-        </div>        
-        <!-- <div class="app_message" id="app_message">insert: camera</div> -->
-        <div class="design_plan_container disable-select" id="design_plan_container">    
-            
-            <div class="map_image_plane" id="map_image_plane">
-                <img class="map_image" src="">
-            </div>
+              <a href="#" id="hamburger_menu_button" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>                                
+        </div>     
+
+        <div id='design_plan_top_bar'>
+          <span id="top_design_plan_name">Test Design Plan</span>
+          <i class = "small material-icons" id="design_plan_edit">edit</i>
+          <span id="design_plan_new">+</span>          
+          <i class = "material-icons" id="design_plan_reset">refresh</i>
         </div>
+        
+        <div id="design_plan_navigator_floating">
+          <span id="design_plan_previous"><i class = "small material-icons">chevron_left</i></span>
+          <span id="design_plan_count"> 1 of 3</span>
+          <span id="design_plan_next"><i class = "small material-icons">chevron_right</i></span> 
+        </div>
+        
+        
+        <template id='template_design_plan'>
+          <div class="design_plan_container disable-select" id="design_plan_container">    
+              <div class="map_image_plane" id="map_image_plane">
+                  <img class="map_image" src="">
+              </div>
+          </div>
+        </template>
+        
         <div class="bottom_menu" id="bottom_menu">            
            
 
@@ -64,10 +96,12 @@
     </div>    
 </body>
 <!--Meterialize Compiled and minified JavaScript -->
+<script type="text/javascript" src="Objects/appMessageAndLog.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.js"></script>
           
 <script type="text/javascript" src="Third Party/firebase.js"></script>
+
 <script type="text/javascript" src="Utilities/tools.js"></script>
 <script type="text/javascript" src="Objects/equipment.js"></script>
 

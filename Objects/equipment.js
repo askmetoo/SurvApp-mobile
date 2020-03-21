@@ -411,8 +411,8 @@ class Camera extends Equipment {
 
           formFactor : {
               display : 'form factor',
-              value : '',
-              options : ['bullet', 'dome', 'multisensor', 'fisheye', 'full body'],
+              value : 'bullet',
+              options : ['bullet', 'dome', 'box', 'housing', '180 degree', '360 degree'],
               htmlElement : 'select',
               DOM: null,
               editable:true,
@@ -428,6 +428,17 @@ class Camera extends Equipment {
               editable:true,
               tab: 1
           }
+      }
+
+      this.defaultIcon = 'box';
+
+      this.icons = {
+          'bullet': 'Images/mapObjectImages/bulletCamera.png',
+          'dome': 'Images/mapObjectImages/domeCamera.png',
+          'box': 'Images/mapObjectImages/boxCamera.png',
+          'housing': 'Images/mapObjectImages/housingCamera.png',
+          '180 degree': 'Images/mapObjectImages/180Camera.png',
+          '360 degree': 'Images/mapObjectImages/bulletCamera.png'
       }
 
       this.parameters = {...this.parameters, ...this.additionalParameters}

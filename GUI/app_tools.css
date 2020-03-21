@@ -1,0 +1,21 @@
+#insertionTool{
+    right: auto;
+    z-index:5;
+    bottom: 120px;
+    left: 25px;
+}
+
+#app_tool_img{
+    position: absolute;
+    width: 40px;
+    height: auto;
+    background-color: rgba(185, 185, 185, 0.945);
+    padding: 7px;
+    border-radius: 50%;
+}
+
+.app_tool_subcontent {
+    right: auto;
+
+}
+

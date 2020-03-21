@@ -4,16 +4,16 @@
 //     return false;
 // })
 
-var manager = new Hammer.Manager(document);
+// var manager = new Hammer.Manager(document);
 
 // Create a recognizer
-var singletap = new Hammer.Tap({
-  event: 'singletap',
-  taps: 1
-});
+// var singletap = new Hammer.Tap({
+//   event: 'singletap',
+//   taps: 1
+// });
 
 // Add the recognizer to the manager
-manager.add(singletap);
+//manager.add(singletap);
 
 // Subscribe to desired event
 // manager.on('singletap', function(e) {
@@ -51,48 +51,11 @@ document.addEventListener('doubleTap', function(ev){
 
 
 //manager.on('singletap', function(ev) {
-//app.activeProject.activeDesignPlan.parentDOM.addEventListener('singleTap', function(ev){
-app.activeProject.activeDesignPlan.DOM.addEventListener('singleTap', function(ev){
-//document.addEventListener('singleTap', function(ev){
-    try{
-
-        // remove popup if the pointer is down on the map (or click)
-        if(general_validation(app.activeProject.activeDesignPlan.activeMapObject)){
-            if(ev.target != app.activeProject.activeDesignPlan.activeMapObject.DOM){
-                app.activeProject.activeDesignPlan.activeMapObject.popupMenuRemove();
-            }
-        }
-
-        if (ev.currentTarget == app.activeProject.activeDesignPlan.DOM && app.appMenus['bottom menu'].activeMenuItem){
-            let objectType = app.appMenus['bottom menu'].clickedPath.split('/').slice(-2)[0];
-            let objectSubType = app.appMenus['bottom menu'].activeMenuItem.name;
-           // app.setAppMessage('test');
-            let equipment = equipmentSelection(objectType, objectSubType);
-    
-            let mapObjectInstance = new mapObject(equipment,'', 'Images/mapObjectImages/CameraWithFOV.png');
-            mapObjectInstance.setParentDesignPlan(app.activeProject.activeDesignPlan);
-            //mapObjectInstance.setTypeAndSubType(objectType, objectSubType);  // i.e. surveillance, camera
-            //mapObjectInstance.generateIDAndMapSymbol();
-            //mapObjectInstance.setName(); // gets name from the ID, name = subType + following number of this subType which is already on the design plan
-            mapObjectInstance.assignToLayer();
-            
-            mapObjectInstance.insertToDesignPlan(ev.detail.eventData.pageX, ev.detail.eventData.pageY);//ev.pointers[0].pageX, ev.pointers[0].pageY)//
-            mapObjectInstance.setClick_TapListener();
-            mapObjectInstance.setMoveListener();
-            //console.log(ev)
-            //app.setAppMessage('map object added');
-            //app.activeProject.activeDesignPlan.insertElementToTheMap(new mapObject(parseInt(Math.random()*9999)), ev.detail.clientX, ev.detail.clientY)
-        }
-    } catch (e){
-        //app.setAppMessage(e);
-        throw e;
-    }    
-})
 
 
 
 let quickTapWaitFlag = false;
-let tapsInterval = 250; // time for tap duration, or time gap between taps to determine single/ double tap
+let tapsInterval = 300; // time for tap duration, or time gap between taps to determine single/ double tap
 let tapDownWaitFunction = null;  // setTimeout function - used to cancel the timeout; if the function runs after the timeout the touch was held long enough for Tap and Held event
 let tapUpWaitFunction = null; // setTimeout function - used to cancel the timeout; if runs marks expiration of the time wait for another tap
 let tapCounter = 0;
