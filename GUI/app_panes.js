@@ -1,122 +1,177 @@
+//types: materialize_floating_action_button
 class Tool{
-    constructor(name, parentDOM, iconImg, subContent, clickFunction){ // clickFunction
+    constructor(type, name, parentDOM, content, callback){ // clickFunction
+        this.type = type;
         this.name = name;
         this.parentDOM = parentDOM;
-        this.iconImg = iconImg;
+
+        this.mainButtonIconImage = '';
+        this.mainButtonIconOrigin = 'materialize';
+       // this.mainNodeName = '';
         
+        this.content = content;
+        this.subcontentDOMs = [];
+        this.subcontent = {};
         // this.DOMId = DOMId;
         // this.DOM = document.getElementById(DOMId);
        
-        let template = document.getElementById('materialize_template_tool');
-        let templateDiv = template.content.querySelector('div');
-        let toolContent = document.importNode(templateDiv, true);
-        this.DOM = toolContent;
-        this.DOM.id = this.name;
-
-        this.parentDOM.appendChild(this.DOM);
-        this.setMainButtonImage(this.iconImg, false)
-
+        this.DOM = null;
+      
         this.visible = false;
 
-        this.clickFunction = clickFunction;
-
-        this.subContent = subContent;
-        this.subContentDOMs = [];
-
-       
+        this.callback = callback;
         
-        let appContainer = document.getElementsByClassName('app_container')[0];
-        appContainer.appendChild(toolContent);
+        // let appContainer = document.getElementsByClassName('app_container')[0];
+        // appContainer.appendChild(toolContent);
 
-        this.DOM.addEventListener('pointerdown', (ev) => {ev.stopPropagation()})
-        this.DOM.addEventListener('pointerup', (ev) => {
-            if(subContent){
-                this.showSubContent(); // if there is subcontent show it
-            } else {
-                this.clickFunction(); // if there is no subcontent (one icon tool) execute function passed to the constructor
-            }            
-        })
+        // this.DOM.addEventListener('pointerdown', (ev) => {ev.stopPropagation()})
+        // this.DOM.addEventListener('pointerup', (ev) => {
+        //     if(subContent){
+        //         this.showSubContent(); // if there is subcontent show it
+        //     } else {
+        //         this.clickFunction(); // if there is no subcontent (one icon tool) execute function passed to the constructor
+        //     }            
+        // })
     }
 
-    setMainButtonImage(imgSrc, materialize){
-        if (materialize){
-            this.DOM.querySelector('i').innerHTML(imgSrc)
-        } else {
-            let i =this.DOM.querySelector('i')
-            let img = document.createElement('img')
-            img.classList.add('material-icons')
-            img.id = 'app_tool_img';
-            img.src = imgSrc;
-            i.parentNode.replaceChild(img, i)
-        }
-        
-    }
-
-    renderSubcontent(){
-        //this.subContent = subContent; //[name, img, imgOrigin] - array of objects with name and image src and img origin (src or materialize) of subcontent elements
-        this.subContentDOM = this.DOM.querySelector('ul');
-        for(let elem of this.subContent){
-            let li = document.createElement('li');
-            this.subContentDOM.appendChild(li);
-
-            let a = document.createElement('a');
-            a.classList.add('btn-floating', 'white');
-            li.appendChild(a);
-
-            let img = null;
-            if(elem.imgOrigin == 'src'){
-                img = document.createElement('img');
-                img.src = elem.img;
-                img.classList.add('tool_image')
-            } else if (elem.imgOrigin == 'materialize'){
-                img = document.createElement('i');
-                img.classList.add('small', 'material-icons', 'tool_image');
-                img.innerHTML = elem.img;
+    renderMainButtonImage(imgSrc, materialize){
+        let imgDOM = null;
+        if (this.mainButtonIconOrigin == 'materialize'){ // current is materialize
+            imgDOM = this.DOM.querySelector('i');
+            if(materialize){ // new is materialize
+                imgDOM.innerHTML(imgSrc);                
+            } else { // new is not materialize - it's just an image source
+                let newImgDOM = document.createElement('img')
+                newImgDOM.classList.add('material-icons')
+                newImgDOM.id = 'app_tool_main_img';
+                newImgDOM.src = imgSrc;
+                imgDOM.parentNode.replaceChild(newImgDOM, imgDOM)
             }
-            a.appendChild(img);
-
-            // let toolName = document.createElement('span');
-            // toolName.innerHTML = elem.name;
-            // toolName.classList.add('tool_name')
-            // this.subContentDOM.appendChild(toolName);
-            
-            this.subContentDOMs.push(li)
+        } else { // current is just an image source - not materialize
+            imgDOM = this.DOM.querySelector('img');
+            if (materialize){ // new is materialize
+                let newImgDOM = document.createElement('i')
+                newImgDOM.classList.add('large','material-icons')
+                newImgDOM.id = 'app_tool_main_img';
+                newImgDOM.innerHTML = imgSrc;
+                imgDOM.parentNode.replaceChild(newImgDOM, imgDOM)
+            } else { // new is just an image source
+                imgDOM.src = imgSrc;
+            }
         }
-
-        let options = {
-            direction: 'top',
-            hoverEnabled: false,
-            toolbarEnabled: false
-        }
-        let instances = M.FloatingActionButton.init(this.DOM, options);
-
-        return this.subContentDOMs; // return these in the same order as the subContent array elems to attach event listeners
     }
 
-    setSubcontentAvailableMarker(){
+    changeMainButtonImage(img, origin){
+        this.renderMainButtonImage(img, origin)
+        this.mainButtonIconImage = img;
+        this.mainButtonIconOrigin = origin;
+    }
+
+    renderTool(){
+        //this.subContent = subContent; //[name, img, imgOrigin] - array of objects with name and image src and img origin (src or materialize) of subcontent elements
+        switch (this.type){
+            case 'materialize_floating_action_button':{
+                let template = document.getElementById('materialize_template_tool');
+                let templateDiv = template.content.querySelector('div');
+                let toolContent = document.importNode(templateDiv, true);
+                this.DOM = toolContent;
+                this.DOM.id = this.name;
+
+                this.parentDOM.appendChild(this.DOM);
+
+                this.renderMainButtonImage(this.content.mainImage, this.content.mainImageOrigin == 'materialize' ? true : false);
+                this.mainButtonName = this.content.name;
+                this.mainButtonIconImage = this.content.mainImage;
+                this.mainButtonIconOrigin = this.content.mainImageOrigin;
+                
+                
+                this.subContentDOM = this.DOM.querySelector('ul');
+                for(let k in this.content.subContent){
+                    let elem = this.content.subContent[k];
+                    if(!isObject(elem)) continue;
+
+                    let li = document.createElement('li');
+                    li.id = this.name + '__' + k;
+                    this.subContentDOM.appendChild(li);
+        
+                    let a = document.createElement('a');
+                    a.classList.add('btn-floating', 'grey',  'darken-3');
+                    li.appendChild(a);
+        
+                    let img = null;
+                    if(elem.iconOrigin == 'src'){
+                        img = document.createElement('img');
+                        //img.classList.add('app_tool_subcontent_image')
+                        img.src = elem.iconSrc;
+                        img.classList.add('app_tool_subcontent_image')
+                    } else if (elem.iconOrigin == 'materialize'){
+                        img = document.createElement('i');
+                        img.classList.add('small', 'material-icons', 'tool_image');
+                        img.innerHTML = elem.iconSrc;
+                    }
+                    a.appendChild(img);
+        
+                    // let toolName = document.createElement('span');
+                    // toolName.innerHTML = elem.name;
+                    // toolName.classList.add('tool_name')
+                    // this.subContentDOM.appendChild(toolName);
+                    
+                    this.subcontentDOMs.push(li)
+                    this.subcontent[li.id] = { // save subcontent data
+                        DOM: li,
+                        data: elem
+                    }
+
+                    //initialize materialize
+                    let options = {
+                        direction: 'top',
+                        hoverEnabled: false,
+                        toolbarEnabled: false
+                    }
+                    let instances = M.FloatingActionButton.init(this.DOM, options);
+                }
+                break;
+            }
+        }
+        return this.subcontentDOMs; // return these in the same order as the subContent array elems to attach event listeners
+    }
+
+    setEventListeners(){
+        for(let elem of this.subcontentDOMs){
+            elem.addEventListener('pointerdown', ev => {ev.stopPropagation();})
+            elem.addEventListener('pointerup', ev => {
+                let clickedData = this.subcontent[elem.id];
+                this.changeMainButtonImage(clickedData.data.iconSrc, clickedData.data.iconOrigin == 'materialize' ? true:false)
+                this.callback(this.name, elem.id)
+            })
+        }
+    }
+
+    // set small marker on top of a tool icon to show that there is submenu i.e '>'
+    setSubcontentAvailableMarker(){ 
         this.DOM.classList.add('tool_subcontent_available')
     }
 
     showTool(){
-        this.DOM.classList.add(this.DOMId + '_visible');
+        this.DOM.classList.add(this.DOM.id + '_visible');
         this.visible = true;
     }
 
     hideTool(){
-        this.DOM.classList.remove(this.DOMId + '_visible');
+        this.DOM.classList.remove(this.DOM.id + '_visible');
         this.visible = false;
     }
 
     showSubContent(){
-        this.subContentDOM.classList.add(this.DOMId + '_subcontent_visible');
+        this.subContentDOM.classList.add(this.DOM.id + '_subcontent_visible');
     }
 
     hideSubcontent(){
-        this.subContentDOM.classList.remove(this.DOMId + '_subcontent_visible');
+        this.subContentDOM.classList.remove(this.DOM.id + '_subcontent_visible');
     }
 
     toggleSubcontent(){
-        this.subContentDOM.classList.toggle(this.DOMId + '_subcontent_visible');
+        this.subContentDOM.classList.toggle(this.DOM.id + '_subcontent_visible');
     }
 }
 

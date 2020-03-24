@@ -26,7 +26,6 @@ class TopProjectMenu{
     }
 }
 
-
 class DesignPlanMenus{
    
     constructor(designPlan){
@@ -298,72 +297,135 @@ let bottomMenuJSON = {
         'insert' : { // li
            // 'DOM_Class': 'bottom_menu_list_item', // li class
             //'DOM_ID': 'bottom_menu_submenu_1', // li ID
-            'icon_src': '',
+            'icon_src': '',           
             'items':{ // ul
                 'DOM_Class': 'bottom_menu_list_item_submenu',
+                'icons': [
+
+                ],
+
                 'video': {   
                     'icon_src': '',                 
                     'items':{
                         'DOM_Class': 'bottom_menu_list_item_submenu',
-                        'camera': 1,
-                        'dvr': 2,
-                        'nvr': 3,
-                        'vms': 4,
-                        'switch': 5
+                        'camera': {
+                            'icon_src': 'Images/mapObjectImages/bulletCamera.png',
+                            
+                            'items': {
+                                'DOM_Class': 'bottom_menu_list_item_submenu',
+                                'dome': {
+                                    'icon_src': 'Images/mapObjectImages/domeCamera.png',
+                                    'icon_origin': 'src'
+                                },
+                                'box': {
+                                    'icon_src': 'Images/mapObjectImages/boxCamera.png',
+                                    'icon_origin': 'src'
+                                },
+                                'bullet': {
+                                    'icon_src': 'Images/mapObjectImages/bulletCamera.png',
+                                    'icon_origin': 'src'
+                                },
+                                'housing': {
+                                    'icon_src': 'Images/mapObjectImages/housingCamera.png',
+                                    'icon_origin': 'src'
+                                },
+                                '180': {
+                                    'icon_src': 'Images/mapObjectImages/180Camera.png',
+                                    'icon_origin': 'src'
+                                },
+                                '360': {
+                                    'icon_src': 'Images/mapObjectImages/360Camera.png',
+                                    'icon_origin': 'src'
+                                },
+                            }
+                        },
+                        'dvr': 1,
+                        'nvr': 2,
+                        'vms': 3,
+                        'switch': 4,
+                        
+                        'icons': [
+
+                        ]
                     }                   
                 },
                 'access control': {  
                     'icon_src': '',                   
                     'items':{
                         'DOM_Class': 'bottom_menu_list_item_submenu',
-                        'reader': 1,
-                        'panel': 2,
+                        'reader': 0,
+                        'panel': 1,
+
+                        'icons': [
+                            
+                        ]
                     }
                 },
                 'alarm': {
                     'icon_src': '',                    
                     'items':{
                         'DOM_Class': 'bottom_menu_list_item_submenu',
-                        'motion': 1,
-                        'door contact': 2,
-                        'glass break': 3,
-                        'panel': 4
+                        'motion': 0,
+                        'door contact': 1,
+                        'glass break': 2,
+                        'panel': 3,
+                        
+                        'icons': [
+
+                        ]
                     }
                 },
                 'intercom': {  
                     'icon_src': '',                  
                     'items':{
                         'DOM_Class': 'bottom_menu_list_item_submenu',
-                        'ip intercom': 1,
-                        'analog intercom':2
+                        'ip intercom': 0,
+                        'analog intercom': 1,
+                        
+                        'icons': [
+
+                        ]
                     }
                 },
                 'network': {   
                     'icon_src': '',                 
                     'items':{
                         'DOM_Class': 'bottom_menu_list_item_submenu',
-                        'switch': 1,
-                        'router': 2,
-                        'injector': 3,                        'antenna': 4,
-                        'fiber': 2,
+                        'switch': 0,
+                        'router': 1,
+                        'injector': 2,                        
+                        'antenna': 3,
+                        'fiber': 4,
+                        
+                        'icons': [
+
+                        ]
                     }
                 },
                 'alarm1': {   
                     'icon_src': '',                 
                     'items':{
                         'DOM_Class': 'bottom_menu_list_item_submenu',
-                        'motion': 1,
-                        'door contact': 2,
-                        'glass break': 3,
-                        'panel': 4
+                        'motion': 0,
+                        'door contact': 1,
+                        'glass break': 2,
+                        'panel': 3,
+                        
+                        'icons': [
+
+                        ]
                     }
                 },
                 'intercom1': {  
                     'icon_src': '',                 
                     'items':{
                         'DOM_Class': 'bottom_menu_list_item_submenu',
-                        'ip': 1,
-                        'analog':2
+                        'ip': 0,
+                        'analog':1,
+                        
+                        'icons': [
+
+                        ]
                     }
                 }
             }
@@ -429,6 +491,8 @@ let bottomMenuJSON = {
 function CreateAppMenu(callback){ // callBack is called every time a menu, subMenu or menuItem are clicked with a clicked item name
     let appMenuInstance = new appMenu(bottomMenuJSON.name, bottomMenuJSON.DOM_ID, bottomMenuJSON.DOM_Class, callback);
     let bottomMenuSubmenu = new subMenu('mainSubmenu', bottomMenuJSON.items.DOM_Class, appMenuInstance);
+    appMenuInstance.contentJSON[appMenuInstance.name] = {};
+
     if (bottomMenuJSON.items){
        
         
@@ -436,10 +500,11 @@ function CreateAppMenu(callback){ // callBack is called every time a menu, subMe
         bottomMenuSubmenu.createDOM();
 
         for(let k in bottomMenuJSON.items){
-            if(k == 'DOM_Class') {
+            if(k == 'DOM_Class' || k == 'icons') {
                 continue;
-            }            
-            addSubmenuItem(bottomMenuSubmenu, bottomMenuJSON.items[k], k)
+            } 
+                     
+            addSubmenuItem(bottomMenuSubmenu, bottomMenuJSON.items[k], k, appMenuInstance.contentJSON[appMenuInstance.name])
         }
         
         //const {DOM_CLASS, ...items} = bottomMenuJSON.items;
@@ -448,27 +513,28 @@ function CreateAppMenu(callback){ // callBack is called every time a menu, subMe
         
     }
     
-    function addSubmenuItem(submenuParent, item, name){
-        let subMenuItem = new menuItem(name, submenuParent, item.icon_src);
+    function addSubmenuItem(submenuParent, item, name, parentPath){
+        parentPath[name] = {};  
+        let subMenuItem = new menuItem(name, submenuParent, item.icon_src, item.icon_origin, parentPath[name]);
         submenuParent.addItem(subMenuItem);
         subMenuItem.createDOM();
         subMenuItem.addPointerDownListener();
-
+       // subMenuItem.childreenPath = parentPath; // this will show the path from this item to all childreen
         if(item.items){
-            addSubmenuFunction(subMenuItem, item.items);
+            addSubmenuFunction(subMenuItem, item.items, parentPath[name] );
         }
     }
 
-    function addSubmenuFunction(parentItem, items){
+    function addSubmenuFunction(parentItem, items, parentPath){
         let subMenuInstance = new subMenu(parentItem.name, items.DOM_Class, parentItem, bottomMenuSubmenu.parentDOM) // create all subMenus at the same level in DOM, same UL parent - so they would slide up in the same way
         subMenuInstance.createDOM();
         parentItem.addSubmenu(subMenuInstance);
 
         for(let k in items){
-            if (k == 'DOM_Class') {
+            if (k == 'DOM_Class' || k == 'icons') {
                 continue;
             }     
-            addSubmenuItem(subMenuInstance, items[k], k)
+            addSubmenuItem(subMenuInstance, items[k], k, parentPath)
         }
     }
 
@@ -485,7 +551,8 @@ function appMenu(name, DOM_ID, DOM_Class, callback){
     this.activeSubmenu = null; // for showing/hiding submenu card
     this.activeMenuItem = null; // what 'end' item is active
     this.clickedPath = '';
-    this.callback = callback
+    this.callback = callback;
+    this.contentJSON = {};
 }
 
 appMenu.prototype.addSubmenu = function(subMenu){
@@ -523,6 +590,29 @@ appMenu.prototype.unsetActiveMenuItem = function(){
         this.activeMenuItem = null;
     }          
 }
+
+appMenu.prototype.getItem = function(name){
+    let checkSubmenu = (name, submenu) => {
+        let returnValue = null;
+        for(let k in submenu.items)
+        {
+            let item = submenu.items[k];
+            if(item.name == name){
+                return item;
+            } else {
+                if (item.subMenu){
+                    returnValue = checkSubmenu(name, item.subMenu);
+                    break;
+                }
+            }
+        }
+        return returnValue;
+    }
+
+    return checkSubmenu(name, this.subMenu)
+}
+
+    
 
 appMenu.prototype.addItem = function(section, menuItemType,menuItemSubType,itemID){ // 'layers', 'video', 'camera', 'camera1'
     let menuSection = this.subMenu.items[section]; // layers LI
@@ -572,8 +662,7 @@ function subMenu(name, domClass, parent, parentDOM){
     this.class = domClass;
     this.items = {};
     this.visible = false;
-    this.DOM = null;
-
+    this.DOM = null;   
 }
 
 subMenu.prototype.createDOM = function(){    
@@ -593,9 +682,9 @@ subMenu.prototype.addItems = function(){
     
     for(let k in this.subMenuJSON){
         
-        if(k == 'DOM_Class' || k == 'DOM_ID' || k == 'icon_src' || k == 'items') continue;
+        if(k == 'DOM_Class' || k == 'DOM_ID' || k == 'icon_src' || k == 'items' || k == 'icons') continue;
         //console.log(k)
-        let item = new menuItem(this,k , this.subMenuJSON[k]);
+        let item = new menuItem(k, this, this.subMenuJSON[k]);
         
         this.items[item.DOM_ID] = item;
     }
@@ -643,27 +732,34 @@ subMenu.prototype.hideMenu = function(){
     this.visible = false;
 }
 
-function menuItem(name, parent, icon_src){
+function menuItem(name, parent, icon_src, icon_origin, parentPath){
     this.parent = parent;
     this.topParent = this.parent.topParent;
     this.name = name;
     this.DOM_ID =  this.name + '__' + this.parent.class;
-    this.iconSrc = icon_src;
+    this.iconSrc = icon_src ? icon_src:''
+    this.iconOrigin = icon_origin ? icon_origin:'';
     this.DOM = null;//this.createDOM();
-    this.subMenu = null;
+    this.subMenu = subMenu;
 
-    
+    //below values are useful for later menu usage, i.e. during the creation of an appTool
+    this.childrenPath = parentPath; // chidreen path starts from this point down, 
+    this.childrenPath.iconSrc = this.iconSrc;
+    this.childrenPath.iconOrigin = this.iconOrigin;
 }
 
 menuItem.prototype.addPointerDownListener = function(){
     this.DOM.addEventListener('pointerdown',  function(ev){
-        this.topParent.callback(this.name, this.subMenu ? this.subMenu.items : null); // notify the menu owning (app) of menu being clicked
+        
         ev.stopPropagation();
         if(this.parent.parent === this.topParent){// check if this subMenu is the top subMenu - the bottom bar
             if(this.topParent.activeTopSubmenuItem && this.topParent.activeTopSubmenuItem == this){ // this item's submenu is already visible
                 this.topParent.activeSubmenu.hideMenu(); // so hide it
                 //console.log('hides submenu 1')
                 this.topParent.unsetActiveTopSubmenuItem();
+                this.topParent.unsetActiveMenuItem();
+                this.topParent.activeSubmenu = null;
+
             } else {
                 this.topParent.unsetActiveTopSubmenuItem();
                 this.topParent.setActiveTopSubmenuItem(this);
@@ -690,6 +786,8 @@ menuItem.prototype.addPointerDownListener = function(){
             
             //console.log(this.DOM_ID.split('__')[0]);
         }
+
+        this.topParent.callback(this, this.subMenu ? this.subMenu.items : null); // notify the menu owner (app) of menu being clicked
         
     }.bind(this))
 }

@@ -35,47 +35,79 @@ try{
 
     designPlanInstance.show();
 
-    let inserTionToolSubContent = [
-        {name: 'test1',
-         img:  '3d_rotation',
-         imgOrigin: 'materialize'
-        },
+    let inserTionToolContent = {
+        'mainButtonName': 'cameras',
+        'mainImage': 'Images/mapObjectImages/bulletCamera.png',
+        'mainImageOrigin': 'src',
 
-        {name: 'test2',
-         img:  'ac_unit',
-         imgOrigin: 'materialize'
-        },
+        'subContent': [
+            {name: 'test1',
+             img:  'Images/mapObjectImages/boxCamera.png',
+             imgOrigin: 'src'
+            },
+    
+            {name: 'test2',
+             img:  'Images/mapObjectImages/domeCamera.png',
+             imgOrigin: 'src'
+            },
+    
+            {name: 'test3',
+             img:  'Images/mapObjectImages/bulletCamera.png',
+             imgOrigin: 'src'
+            },
 
-        {name: 'test3',
-         img:  'Images/mapObjectImages/bulletCamera.png',
-         imgOrigin: 'src'
-        }
-    ]
-    let insertionTool = new Tool('insertionTool', designPlanInstance.DOM, 'Images/mapObjectImages/bulletCamera.png', inserTionToolSubContent )
-    this.app.addAppTool(insertionTool)
-    let tools = insertionTool.renderSubcontent();
+            {name: 'test4',
+             img:  'Images/mapObjectImages/boxCamera.png',
+             imgOrigin: 'src'
+            },
+    
+            {name: 'test5',
+             img:  'Images/mapObjectImages/domeCamera.png',
+             imgOrigin: 'src'
+            },
+    
+            {name: 'test6',
+             img:  'Images/mapObjectImages/bulletCamera.png',
+             imgOrigin: 'src'
+            }
+        ]
+    }
+    
+   
+    
 
-    tools[0].addEventListener('pointerdown', ev => {
-        console.log('tool 1 clicked')
-    })
+    // create bottom menu with a callback as a parameter, callback is executed every time a menu item is clicked
+    app.addAppMenu(CreateAppMenu(app.processBottomMenu));
 
-    app.addAppMenu(CreateAppMenu((nameClicked, subElements) => {
-        console.log(nameClicked)
+    //extract object showing elements of the menu starting with camera and going down the menu
+    let cameraItem = app.appMenus['bottom menu'].getItem('camera');
+    //small tool showing after the insert element group is selected, this tool will display all the camera types
+    let cameraIsertionToolContent = {
+        'mainButtonName': 'cameras',
+        'mainImage': 'Images/mapObjectImages/bulletCamera.png',
+        'mainImageOrigin': 'src',
+        'subContent': cameraItem.childrenPath
+    }
+    let cameraInsertionTool = new Tool('materialize_floating_action_button', 'insertionTool_camera', designPlanInstance.parentDOM, cameraIsertionToolContent, app.processTool)
+    this.app.addAppTool(cameraInsertionTool)
+    cameraInsertionTool.renderTool();
+    cameraInsertionTool.setEventListeners();
+    //after rendering the tool the Tool.subContentDOMs allows to create listeners
+    // for(let elem of cameraInsertionTool.subcontentDOMs){
+    //     elem.addEventListener('pointerdown', ev => {
+    //         console.log(`tool ${elem.id} clicked`)
 
-        if (Object.keys(app.appTools).length > 0){
-            // if(Object.keys(app.appTools).contains('insertionTool')){
-
-            // } else {
-
-            // }
-        }
-    }));
+    //         //change main button image
+    //         let clickedData = insertionTool.subcontent[elem.id];
+    //         insertionTool.changeMainButtonImage(clickedData.data.img, clickedData.data.imgOrigin == 'materialize' ? true:false)
+    //     })
+    // }
 
 
     console.dir(app)
     console.dir(window)
 
-    let error = new appLogMessage('index.js', 'test error', 'error');
+    //let error = new appLogMessage('index.js', 'test error', 'error');
     //error.showAppMessage();
     // let cameraTest = new camera('camera1', 'camera1_ID', 'mapIconSource', 'camera details', 'gns model', '5Mpx')
     // console.log(camera.designPlan)

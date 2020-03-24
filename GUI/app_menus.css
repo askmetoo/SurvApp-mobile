@@ -51,7 +51,13 @@
     border-radius: 50%;
     background-color: white;
     margin: auto; 
+    overflow: hidden;
     z-index: inherit;
+}
+
+.menu_list_item_image>img{
+    width:80px;
+    height: auto;
 }
 
 .menu_list_item_description{

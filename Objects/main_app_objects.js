@@ -69,6 +69,42 @@ application.prototype.addLogMessage = function(appMessage){
     this.appLogs.push(appMessage)
 }
 
+// callback that is being set as a parameter in bottom menu creation function
+application.prototype.processBottomMenu = function(menuItem, subElements){
+    //console.log(menuItem.name)
+
+    let bottomAppMenu = menuItem.topParent;
+    let activeTopMenuItem = bottomAppMenu.activeTopSubmenuItem;
+    let activeSubmenu = bottomAppMenu.activeSubmenu;
+
+    if(activeTopMenuItem){
+        if(activeTopMenuItem.name == 'insert'){
+            switch (menuItem.name){
+                case 'camera': //|| 'access control' || 'alarm' || 'intercom' || 'network':
+                    //check if any tools are available
+                    if (Object.keys(app.appTools).length > 0){
+                        //check if insertionTool is available to hide the bottom menu and show the insertion tool
+                        if(app.appTools.hasOwnProperty('insertionTool_camera')){
+                            // hide the bottom submenu that submenu will be displayed in insertion tool
+                            activeSubmenu.hideMenu();
+                            //show insertion tool
+                            app.appTools.insertionTool_camera.showTool();
+                            //console.log('insertion tool is available')
+                        }
+                    }
+                    break;
+                }
+        }
+    } else {
+        app.appTools.insertionTool_camera.hideTool();
+    }   
+}  
+
+application.prototype.processTool = function(toolName, itemClicked){
+    console.log(`from app object - tool ${toolName}, item ${itemClicked} clicked`)
+}
+
+
 
 
 

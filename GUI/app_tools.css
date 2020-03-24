@@ -1,21 +1,30 @@
-#insertionTool{
+#insertionTool_camera{
     right: auto;
     z-index:5;
     bottom: 120px;
-    left: 25px;
+    left: -40px;
+    transition: left 600ms;
 }
 
-#app_tool_img{
+.insertionTool_camera_visible{
+    left: 25px !important;
+}
+
+#app_tool_main_img{
     position: absolute;
-    width: 40px;
+    width: 70px;
     height: auto;
-    background-color: rgba(185, 185, 185, 0.945);
+    background-color: rgba(185, 185, 185, 0.048);
     padding: 7px;
-    border-radius: 50%;
+    /* border-radius: 50%; */
 }
 
 .app_tool_subcontent {
     right: auto;
 
+}
+
+.app_tool_subcontent_image{
+    width: 70px;
 }
 
