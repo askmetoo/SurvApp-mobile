@@ -314,26 +314,32 @@ let bottomMenuJSON = {
                             'items': {
                                 'DOM_Class': 'bottom_menu_list_item_submenu',
                                 'dome': {
+                                    'name': 'dome',
                                     'icon_src': 'Images/mapObjectImages/domeCamera.png',
                                     'icon_origin': 'src'
                                 },
                                 'box': {
+                                    'name': 'box',
                                     'icon_src': 'Images/mapObjectImages/boxCamera.png',
                                     'icon_origin': 'src'
                                 },
                                 'bullet': {
+                                    'name': 'bullet',
                                     'icon_src': 'Images/mapObjectImages/bulletCamera.png',
                                     'icon_origin': 'src'
                                 },
                                 'housing': {
+                                    'name': 'housing',
                                     'icon_src': 'Images/mapObjectImages/housingCamera.png',
                                     'icon_origin': 'src'
                                 },
                                 '180': {
+                                    'name': '180',
                                     'icon_src': 'Images/mapObjectImages/180Camera.png',
                                     'icon_origin': 'src'
                                 },
                                 '360': {
+                                    'name': '360',
                                     'icon_src': 'Images/mapObjectImages/360Camera.png',
                                     'icon_origin': 'src'
                                 },
@@ -515,6 +521,7 @@ function CreateAppMenu(callback){ // callBack is called every time a menu, subMe
     
     function addSubmenuItem(submenuParent, item, name, parentPath){
         parentPath[name] = {};  
+    
         let subMenuItem = new menuItem(name, submenuParent, item.icon_src, item.icon_origin, parentPath[name]);
         submenuParent.addItem(subMenuItem);
         subMenuItem.createDOM();
@@ -746,6 +753,7 @@ function menuItem(name, parent, icon_src, icon_origin, parentPath){
     this.childrenPath = parentPath; // chidreen path starts from this point down, 
     this.childrenPath.iconSrc = this.iconSrc;
     this.childrenPath.iconOrigin = this.iconOrigin;
+    this.childrenPath.name = this.name;
 }
 
 menuItem.prototype.addPointerDownListener = function(){
@@ -786,7 +794,7 @@ menuItem.prototype.addPointerDownListener = function(){
             
             //console.log(this.DOM_ID.split('__')[0]);
         }
-
+        this.topParent.setActiveMenuItem(this);
         this.topParent.callback(this, this.subMenu ? this.subMenu.items : null); // notify the menu owner (app) of menu being clicked
         
     }.bind(this))

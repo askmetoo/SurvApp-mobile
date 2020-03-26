@@ -261,3 +261,26 @@ html,body {
     border-radius: 50%;
     background-color: red;
 }
+
+
+
+.card.horizontal{
+    position: absolute;
+    top: 20px;
+    overflow-y: scroll;
+    max-height: 200px;
+}
+
+.card-image{
+    top: 30px;
+    max-height: 100px;
+    overflow-y: scroll;
+}
+
+.card.horizontal .card-image{
+    max-width: 40% !important;
+}
+
+.card-content{
+    overflow-y: scroll;
+}

@@ -335,6 +335,7 @@ function designPlan(name, designPlanDOMID, createdBy = app.currentUser, createdD
     this.zoomIntensity = 0.1;
     this.scrollSpeed = 10;
     
+    this.hammerTouch = null;
     
     this.selectionFrameDOMs = {};
     this.elementToTransform = null;
@@ -463,11 +464,79 @@ designPlan.prototype.saveTransformValues = function(x,y,scale){
 }
 
 designPlan.prototype.addListeners = function(){
-    this.DOM.addEventListener('singleTap', ev => {
-        ev.stopPropagation();
-        console.log(`design ${this.name} plan tapped`)
 
+    this.hammerManager = new Hammer.Manager(this.DOM);
+    this.hammerManager.options.domEvents = true;
+
+    // Tap recognizer with minimal 2 taps
+    this.hammerManager.add( new Hammer.Tap({ event: 'doubletap', taps: 2 }) );
+    // Single tap recognizer
+    this.hammerManager.add( new Hammer.Tap({ event: 'singletap' }) );
+    // Pan recognizer
+    this.hammerManager.add( new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0 }) );
+
+    this.hammerManager.add( new Hammer.Pinch());
+    this.hammerManager.get('pinch').set({ enable: true });
+    
+
+    // we want to recognize this simulatenous, so a quadrupletap will be detected even while a tap has been recognized.
+    this.hammerManager.get('doubletap').recognizeWith('singletap');
+    // we only want to trigger a tap, when we don't have detected a doubletap
+    this.hammerManager.get('singletap').requireFailure('doubletap');
+   
+   
+    // this.hammerTouch = new Hammer(this.DOM);
+    // this.hammerTouch.get('pinch').set({ enable: true });
+
+    //hammerTouch.get('rotate').set({ enable: true });
+    
+
+    this.hammerManager.on('pan', (ev) => {
+        //console.log(`hammer pan x=${ev.deltaX}, y=${ev.deltaY}`)
+        //console.dir(ev)
+        if(!ev.isFinal){
+            this.moveOnTouch(ev.deltaX, ev.deltaY)
+        } else {
+            this.setTransformValues()
+        }
+    })
+
+    // set firstPinch flag to be able to setOrigin
+    this.hammerManager.on('pinchstart', (ev) => {
+        if(this.firstPinch == undefined  || this.firstPinch == false) this.firstPinch = true;
+        //console.log('pinchstart')
+    })
+
+    // hammerTouch.on('pinchend', (ev) => {
+    //     this.firstPinch = true;
+    //     //console.log('pinchstart')
+    // })
+
+
+    this.hammerManager.on('pinch', (ev) => {
+        console.log(`hammer zoom scale=${ev.scale}`)
+        console.dir(ev)
+        
+        if(this.firstPinch){
+            this.transformOrigin(ev.center.x, ev.center.y);
+            this.firstPinch = false;
+        }else if(!ev.isFinal){
+            this.zoomOnPinch(ev.scale)
+        } else {
+            this.setTransformValues()
+            this.firstPinch = true;
+        }
+        
+    })
+
+    
+    
+
+    this.hammerManager.on("singletap", (ev) => {
+                
+        //hide design plan menu bars
         this.parentProject.designPlanMenuBar.menusVisibility.all.set(false);
+        this.removeMapObjectPopupMenu();
 
         let objectType = '';
         let objectSubType =- '';
@@ -476,35 +545,39 @@ designPlan.prototype.addListeners = function(){
             if(app.appMenus['bottom menu'].hasOwnProperty('activeMenuItem')){
                 objectSubType = app.appMenus['bottom menu'].activeMenuItem.name;
 
-                // app.setAppMessage('test');
-            if (general_validation(objectType) && general_validation(objectSubType)){
-                let equipment = equipmentSelection(objectType, objectSubType);
+                if (general_validation(objectType) && general_validation(objectSubType)){
+                    let equipment = equipmentSelection(objectType, objectSubType, app.appMenus['bottom menu'].activeMenuItem.childrenPath); // children path consists of the icons for the form factors
 
-                let mapObjectInstance = new mapObject(equipment,'', 'Images/mapObjectImages/CameraWithFOV.png');
-                mapObjectInstance.setParentDesignPlan(app.activeProject.activeDesignPlan);
-                //mapObjectInstance.setTypeAndSubType(objectType, objectSubType);  // i.e. surveillance, camera
-                //mapObjectInstance.generateIDAndMapSymbol();
-                //mapObjectInstance.setName(); // gets name from the ID, name = subType + following number of this subType which is already on the design plan
-                mapObjectInstance.assignToLayer();
-                
-                mapObjectInstance.insertToDesignPlan(ev.detail.eventData.pageX, ev.detail.eventData.pageY);//ev.pointers[0].pageX, ev.pointers[0].pageY)//
-                mapObjectInstance.setClick_TapListener();
-                mapObjectInstance.setMoveListener();
-            }
-            
-        }      
-       
+                    //check if there's an isertion tool for this object subtype
+                    if (app.appTools.hasOwnProperty('insertionTool_' + objectSubType)){
+                        if(app.appTools['insertionTool_' + objectSubType].activeItem){
+                            //form fator determines the icon for the mapObject
+                            equipment.setFormFactor(app.appTools['insertionTool_' + objectSubType].activeItem.data.name)
+                        }
+                    }
+                    let mapObjectInstance = new mapObject(equipment,'', 'Images/mapObjectImages/CameraWithFOV.png');
+                    mapObjectInstance.setParentDesignPlan(app.activeProject.activeDesignPlan);
+                    
+                    mapObjectInstance.insertToDesignPlan(ev.center.x, ev.center.y);//ev.pointers[0].pageX, ev.pointers[0].pageY)//
+                    mapObjectInstance.setListeners();
+                    mapObjectInstance.setMoveListener();
+                }
+            }   
        } else {
         
        }
         
     })
 
-    this.DOM.addEventListener('doubleTap', ev => {
-        ev.stopPropagation();
-        //this.parentProject.designPlanMenuBar.allMenusToggleVisibility();
-        this.parentProject.designPlanMenuBar.menusVisibility.all.set(true);
-    })
+    this.hammerManager.on('doubletap', ev => {
+            this.parentProject.designPlanMenuBar.menusVisibility.all.set(true);
+        })
+
+    // this.DOM.addEventListener('doubleTap', ev => {
+    //     ev.stopPropagation();
+    //     //this.parentProject.designPlanMenuBar.allMenusToggleVisibility();
+    //     this.parentProject.designPlanMenuBar.menusVisibility.all.set(true);
+    // })
 }
 
 designPlan.prototype.addMapObject = function(mapObject){
@@ -616,6 +689,11 @@ designPlan.prototype.scrollVertically = function(wheel){
     this.applyTransform();
 }
 
+designPlan.prototype.zoomOnPinch = function(scale){
+    this.scaleInProgress = this.transformValues.scale * scale;
+    this.applyTransform();
+}
+
 designPlan.prototype.changeZoomOnPinch = function(x, y, pointerId){    
     let otherFingerTouch = null;
     for(let k in this.touchPointersInProgress){
@@ -634,9 +712,15 @@ designPlan.prototype.changeZoomOnPinch = function(x, y, pointerId){
 
 designPlan.prototype.moveOnTouch = function(x,y){
     //console.log(x,y);
-    this.moveXValueInProgress = this.transformValues.x + x
-    this.moveYValueInProgress = this.transformValues.y + y// /this.transformValues.scale;
-   this.applyTransform();
+    this.moveXValueInProgress = (this.transformValues.x + x);
+    this.moveYValueInProgress = (this.transformValues.y + y);
+    this.applyTransform();
+}
+
+designPlan.prototype.setTransformValues = function(){
+    this.transformValues.x = this.moveXValueInProgress;
+    this.transformValues.y = this.moveYValueInProgress;
+    this.transformValues.scale = this.scaleInProgress;
 }
 
 designPlan.prototype.applyTransform = function(){
@@ -731,7 +815,8 @@ function mapObject(equipment, ID='', mapIconSrc='', type='', subType='', locatio
     this.ID = 'map_object__' + this.type + '__' + this.subType + '__' + equipment.equipmentNumber; // for DOM
     this.mapSymbol = this.subType.substring(0,1).toUpperCase() + equipment.equipmentNumber;
     this.mapNumber = equipment.equipmentNumber;
-    this.mapIconSrc = equipment.icons[equipment.defaultIcon];    
+    this.mapIconSrc = equipment.icons[equipment.parameters.formFactor.value].iconSrc; 
+    this.mapIconOrigin = equipment.icons[equipment.parameters.formFactor.value].iconOrigin;   
    
     this.locationRect = locationRect; // location on the map in pixels
     this.onMap = onMap; // determines if the object is on the map or side menu
@@ -753,6 +838,8 @@ function mapObject(equipment, ID='', mapIconSrc='', type='', subType='', locatio
     this.selectionFrame = {frameDOM: null, rotationNodeDOM: null, rotationNodeConatainerDOM: null};
     this.rotationNode = null;
 
+    this.moveXValueInProgress = 0;
+    this.moveYValueInProgress = 0;
     this.transformValues = {x:0, y:0, scale:1, rotation:0}
     this.transformStartValues = {x:0, y:0, scale:1, rotation:0}; // when object is tapped save it's initial values here
     this.translateX = 0;
@@ -853,12 +940,16 @@ mapObject.prototype.insertToDesignPlan = function(x,y){
 
     let designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
     //console.log(designPlanRect)
-    this.transformValues.x = (x - designPlanRect.x - xClickOffset)/this.parentDesignPlan.transformValues.scale;//(x - this.parentDesignPlan.transformValues.originX - this.parentDesignPlan.transformValues.x) / this.parentDesignPlan.transformValues.scale;
-    this.transformValues.y = (y - designPlanRect.y - yClickOffset)/this.parentDesignPlan.transformValues.scale// - designPlanRect.y;//y - this.parentDesignPlan.transformValues.originY - this.parentDesignPlan.transformValues.y) / this.parentDesignPlan.transformValues.scale;
+    
+    this.moveXValueInProgress = (x - designPlanRect.x - xClickOffset)/this.parentDesignPlan.transformValues.scale;//(x - this.parentDesignPlan.transformValues.originX - this.parentDesignPlan.transformValues.x) / this.parentDesignPlan.transformValues.scale;
+    this.moveYValueInProgress = (y - designPlanRect.y - yClickOffset)/this.parentDesignPlan.transformValues.scale// - designPlanRect.y;//y - this.parentDesignPlan.transformValues.originY - this.parentDesignPlan.transformValues.y) / this.parentDesignPlan.transformValues.scale;
+    this.transformValues.x = this.moveXValueInProgress;
+    this.transformValues.y = this.moveYValueInProgress;
+
     //let randomColor = Math.random() * 255;
     //this.DOM.style.backgroundColor = `rgb(${randomColor},${randomColor},${randomColor})`
     //console.log(`transformed: x=${this.transformValues.x}, ${y=this.transformValues.y}`)
-    this.applyTansform('translate');
+    this.applyTransform('translate');
 
     this.addPopupMenu('mapObject_popup_menu');
     this.addPopupMenuItems(['details', 'add note', 'photos', 'delete'])
@@ -882,52 +973,125 @@ mapObject.prototype.updateIcon = function(){
     this.DOM.querySelector('img').src = this.associatedObject.icons[this.associatedObject.parameters.formFactor.value];
 }
 
-mapObject.prototype.setClick_TapListener = function(){
-    //this.DOM.dispatchEvent(eventSingleTap);
-    this.DOM.addEventListener('pointerdown', function(ev){    
-        this.selectObject();    
+mapObject.prototype.setListeners = function(){
+        //this.DOM.dispatchEvent(eventSingleTap);
+
+    this.DOM.addEventListener('pointerdown', (ev) => {
+        ev.stopPropagation();
+        this.selectObject(); // selecting here because it's better for element's move operation
+        this.parentDesignPlan.removeMapObjectPopupMenu();
+    })
+
+    this.containerDOM.addEventListener('pointerdown', (ev) => {
+        ev.stopPropagation();
+        //this.selectObject(); // selecting here because it's better for element's move operation
+    })
+
+    let hammerManager = new Hammer.Manager(this.containerDOM);
+    hammerManager.options.domEvents = true;
+
+    // Tap recognizer with minimal 2 taps
+    hammerManager.add( new Hammer.Tap({ event: 'doubletap', taps: 2 }) );
+    // Single tap recognizer
+    hammerManager.add( new Hammer.Tap({ event: 'singletap' }) );
+    // Pan recognizer
+    hammerManager.add( new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0 }) );
+
+
+    // we want to recognize this simulatenous, so a quadrupletap will be detected even while a tap has been recognized.
+    hammerManager.get('doubletap').recognizeWith('singletap');
+    // we only want to trigger a tap, when we don't have detected a doubletap
+    hammerManager.get('singletap').requireFailure('doubletap');
+
+
+    hammerManager.on('singletap', (ev) => {   
+        ev.srcEvent.stopPropagation();
+        ev.preventDefault();
+        //this.selectObject();    
         //initialize values for translation
-        console.log('element tapped')
+        //console.log('element tapped')
         this.transformStartValues.x = this.transformValues.x;
         this.transformStartValues.x = this.transformValues.y;
-    }.bind(this));
 
-    //
-    this.containerDOM.addEventListener('singleTap', ev => {
-        ev.preventDefault();
-        ev.stopPropagation()
-        console.log('map object single tap');
-        this.selectObject();
         if(this.parentDesignPlan.mapObjectPopupMenu){
             this.parentDesignPlan.removeMapObjectPopupMenu();
         }
+    });
 
-    })
-
-    this.containerDOM.addEventListener('doubleTap', ev => {
-        ev.preventDefault();
-        ev.stopPropagation()
+    hammerManager.on('doubletap', (ev) => { 
+        ev.srcEvent.stopPropagation() 
+        //ev.preventDefault();
+        //ev.stopPropagation()
         console.log('map object double tap');
         this.selectObject();
         this.popupMenuShow();
     })
-}
-    
 
-mapObject.prototype.setMoveListener = function(){
-    this.containerDOM.addEventListener('pointermove', function(ev){
-        ev.stopPropagation();
+    hammerManager.on('pan', (ev) => { 
+        ev.srcEvent.stopPropagation() 
         if(this.parentDesignPlan.activeMapObject == this){ // if this is an active object
             if(this.parentDesignPlan.mapObjectPopupMenu){ // if popup is shown
                 this.popupMenuRemove();
                 this.parentDesignPlan.reopenPopup = true;
             }            
-            console.log('element moved')
-            this.moveOnMap(ev.pageX, ev.pageY)
-        }
+            
+            console.log(`hammer pan x=${ev.deltaX}, y=${ev.deltaY}`)
+            console.dir(ev)
+            if(!ev.isFinal){
+                this.moveOnTouch(ev.deltaX, ev.deltaY)
+            } else {
+                this.setTransformValues()
+            }
+
+            //this.moveOnMap(ev.deltaX, ev.deltaY)
+        }   
+    })
+
+    // this.DOM.addEventListener('pointerdown', function(ev){    
+    //     this.selectObject();    
+    //     //initialize values for translation
+    //     console.log('element tapped')
+    //     this.transformStartValues.x = this.transformValues.x;
+    //     this.transformStartValues.x = this.transformValues.y;
+    // }.bind(this));
+
+    //
+    // this.containerDOM.addEventListener('singleTap', ev => {
+    //     ev.preventDefault();
+    //     ev.stopPropagation()
+    //     console.log('map object single tap');
+    //     this.selectObject();
+    //     if(this.parentDesignPlan.mapObjectPopupMenu){
+    //         this.parentDesignPlan.removeMapObjectPopupMenu();
+    //     }
+
+    // })
+
+    
+    // this.containerDOM.addEventListener('doubleTap', ev => {
+    //     ev.preventDefault();
+    //     ev.stopPropagation()
+    //     console.log('map object double tap');
+    //     this.selectObject();
+    //     this.popupMenuShow();
+    // })
+}
+    
+
+mapObject.prototype.setMoveListener = function(){
+    // this.containerDOM.addEventListener('pointermove', function(ev){
+    //     ev.stopPropagation();
+    //     if(this.parentDesignPlan.activeMapObject == this){ // if this is an active object
+    //         if(this.parentDesignPlan.mapObjectPopupMenu){ // if popup is shown
+    //             this.popupMenuRemove();
+    //             this.parentDesignPlan.reopenPopup = true;
+    //         }            
+    //         console.log('element moved')
+    //         this.moveOnMap(ev.pageX, ev.pageY)
+    //     }
         
         
-    }.bind(this))
+    // }.bind(this))
 }
 
 mapObject.prototype.selectObject = function(){
@@ -1033,40 +1197,52 @@ mapObject.prototype.getSizeLocation = function(){
     return this.DOM.getBoundingClientRect();
 }
 
-mapObject.prototype.getTransformedXY = function(){ // gets position of the object after translation
-    let xy = {}
-    var style = this.containerDOM.style.getPropertyValue('transform') //returns i.e. translate(99px, 146px) scale(1) rotate(0deg)
+// mapObject.prototype.getTransformedXY = function(){ // gets position of the object after translation
+//     let xy = {}
+//     var style = this.containerDOM.style.getPropertyValue('transform') //returns i.e. translate(99px, 146px) scale(1) rotate(0deg)
    
-    if(general_validation(style)){
-        var translate = style.match(/\(([^)]+)\)/); // regular expression that gets a value in 1st parenthesis - value of translate        
-        xy.x = parseInt(translate[1].split(',')[0]);
-        xy.y = parseInt(translate[1].split(',')[1])
-    }
-   return xy;
+//     if(general_validation(style)){
+//         var translate = style.match(/\(([^)]+)\)/); // regular expression that gets a value in 1st parenthesis - value of translate        
+//         xy.x = parseInt(translate[1].split(',')[0]);
+//         xy.y = parseInt(translate[1].split(',')[1])
+//     }
+//    return xy;
+// }
+
+// mapObject.prototype.lift = function(ID){
+//     this.DOM.classList.add('map_object_lifted');
+// }
+
+// mapObject.prototype.calcMouseClickOffset = function(clientX, clientY){ // for moving object on the map with mouse - calculates difference between mouse click location and object location
+    
+//     var cssTransformedXY = this.getTransformedXY();
+//     var designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
+    
+//     this.mouseClickOffsetX = Math.floor((clientX - designPlanRect.x)/this.parentDesignPlan.scale - cssTransformedXY.x)
+//     this.mouseClickOffsetY = Math.floor((clientY - designPlanRect.y)/this.parentDesignPlan.scale - cssTransformedXY.y)
+    
+// }
+
+mapObject.prototype.moveOnTouch = function(x,y){
+    //console.log(x,y);
+    this.moveXValueInProgress = this.transformValues.x + x / this.parentDesignPlan.transformValues.scale;
+    this.moveYValueInProgress = this.transformValues.y + y / this.parentDesignPlan.transformValues.scale;
+    this.applyTransform('translate');
 }
 
-mapObject.prototype.lift = function(ID){
-    this.DOM.classList.add('map_object_lifted');
-}
 
-mapObject.prototype.calcMouseClickOffset = function(clientX, clientY){ // for moving object on the map with mouse - calculates difference between mouse click location and object location
+// mapObject.prototype.moveOnMap = function(deltaX, deltaY){
+//     var designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
+//     var domRect = this.containerDOM.getBoundingClientRect();
     
-    var cssTransformedXY = this.getTransformedXY();
-    var designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
-    
-    this.mouseClickOffsetX = Math.floor((clientX - designPlanRect.x)/this.parentDesignPlan.scale - cssTransformedXY.x)
-    this.mouseClickOffsetY = Math.floor((clientY - designPlanRect.y)/this.parentDesignPlan.scale - cssTransformedXY.y)
-    
-}
+//     this.transformValues.x = Math.floor((deltaX - designPlanRect.x)/ this.parentDesignPlan.transformValues.scale);
+//     this.transformValues.y = Math.floor((deltaY - designPlanRect.y)/ this.parentDesignPlan.transformValues.scale); 
 
-mapObject.prototype.moveOnMap = function(clientX, clientY){
-    var designPlanRect = this.parentDesignPlan.DOM.getBoundingClientRect();
-    var domRect = this.containerDOM.getBoundingClientRect();
-    this.transformValues.x = this.transformStartValues.x + Math.floor(((clientX - domRect.width/2 - designPlanRect.x)/ this.parentDesignPlan.transformValues.scale - this.transformStartValues.x) );
-    this.transformValues.y = this.transformStartValues.y + Math.floor(((clientY - domRect.height/2 - designPlanRect.y)/this.parentDesignPlan.transformValues.scale - this.transformStartValues.y) );
+//     // this.transformValues.x = this.transformStartValues.x + Math.floor(((clientX - domRect.width/2 - designPlanRect.x)/ this.parentDesignPlan.transformValues.scale - this.transformStartValues.x) );
+//     // this.transformValues.y = this.transformStartValues.y + Math.floor(((clientY - domRect.height/2 - designPlanRect.y)/this.parentDesignPlan.transformValues.scale - this.transformStartValues.y) );
     
-    this.applyTansform('translate');
-}
+//     this.applyTansform('translate');
+// }
 
 mapObject.prototype.resizeElement = function(clientX, clientY){
     //console.log('trying resizing')
@@ -1149,7 +1325,7 @@ mapObject.prototype.rotateElement = function(pointerX, pointerY){
     this.transformValues.rotation = radians * ((180 / Math.PI) * 1)+135; // + 135 because the rotation node is at 135 degrees from the x axis (90+45)
    
     //console.log(this.transformValues.rotation)
-    this.applyTansform('rotate');
+    this.applyTransform('rotate');
 }
 
 mapObject.prototype.bringOnTop = function(){
@@ -1160,9 +1336,16 @@ mapObject.prototype.bringOnTop = function(){
     this.containerDOM.style.zIndex = 10;
 }
 
-mapObject.prototype.applyTansform = function(which){
+
+mapObject.prototype.setTransformValues = function(){
+    this.transformValues.x = this.moveXValueInProgress;
+    this.transformValues.y = this.moveYValueInProgress;
+    //this.transformValues.scale = this.scaleInProgress;
+}
+
+mapObject.prototype.applyTransform = function(which){
     if(which == 'translate'){
-        this.containerDOM.style.transform = `translate(${this.transformValues.x}px, ${this.transformValues.y}px) scale(${this.transformValues.scale})`
+        this.containerDOM.style.transform = `translate(${this.moveXValueInProgress}px, ${this.moveYValueInProgress}px)`
     } else if(which == 'rotate'){
         this.DOM.style.transform = `rotate(${this.transformValues.rotation}deg)`;
     }

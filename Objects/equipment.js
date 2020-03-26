@@ -22,42 +22,36 @@ let vendors = {
 
 //document.getElementById("app_message").innerHTML = 'equipment.js loaded';
 
-var equipmentSelection = function(type, subType){
+var equipmentSelection = function(type, subType, icons){
     switch(type){
         case 'video':
             switch (subType){
                 case 'camera':
-                    return new Camera();
+                    return new Camera(icons);
                     break;
                 
                 case 'dvr':
-                    return new DVR();
+                    return new DVR(icons);
                     break;
         
                 case 'nvr':
-                    return new NVR();
+                    return new NVR(icons);
                     break;
                 
                 case 'vms':
-                    return new VMS();
-                    break;
-        
-                case 'access control panel':
-                    return new accessControlPanel();
-                    break;
-        
-                
+                    return new VMS(icons);
+                    break;        
             }
             break;
         
         case 'access control':
             switch (subType){
                 case 'panel':
-                    return new accessControlPanel();
+                    return new accessControlPanel(icons);
                     break;
 
                 case 'reader':
-                    return new Reader();
+                    return new Reader(icons);
                     break;
             }
             break;
@@ -374,12 +368,12 @@ class Equipment {
 
 class Camera extends Equipment {
    
-    constructor() {
+    constructor(icons) {
       let cameraNumber = equipmentCounts.increaseAndGetCount('camera');//Camera.setCameraNumber();
       let name = 'Camera ' + cameraNumber;//Camera.setCameraName(cameraNumber);  
       let additionalStatusOptions = ['adjusted','programmed'];
 
-      super('video', 'camera', name, additionalStatusOptions); 
+      super('video', 'camera', name, additionalStatusOptions, icons); 
 
       this.equipmentNumber = cameraNumber;
       this.additionalStatusOptions = additionalStatusOptions;
@@ -412,7 +406,7 @@ class Camera extends Equipment {
           formFactor : {
               display : 'form factor',
               value : 'bullet',
-              options : ['bullet', 'dome', 'box', 'housing', '180 degree', '360 degree'],
+              options : ['bullet', 'dome', 'box', 'housing', '180', '360'],
               htmlElement : 'select',
               DOM: null,
               editable:true,
@@ -432,16 +426,25 @@ class Camera extends Equipment {
 
       this.defaultIcon = 'box';
 
-      this.icons = {
-          'bullet': 'Images/mapObjectImages/bulletCamera.png',
-          'dome': 'Images/mapObjectImages/domeCamera.png',
-          'box': 'Images/mapObjectImages/boxCamera.png',
-          'housing': 'Images/mapObjectImages/housingCamera.png',
-          '180 degree': 'Images/mapObjectImages/180Camera.png',
-          '360 degree': 'Images/mapObjectImages/bulletCamera.png'
-      }
+      this.icons = icons;
+    //   this.icons = {
+    //       'bullet': 'Images/mapObjectImages/bulletCamera.png',
+    //       'dome': 'Images/mapObjectImages/domeCamera.png',
+    //       'box': 'Images/mapObjectImages/boxCamera.png',
+    //       'housing': 'Images/mapObjectImages/housingCamera.png',
+    //       '180 degree': 'Images/mapObjectImages/180Camera.png',
+    //       '360 degree': 'Images/mapObjectImages/bulletCamera.png'
+    //   }
 
       this.parameters = {...this.parameters, ...this.additionalParameters}
+    }
+
+    setFormFactor(name){
+        this.parameters.formFactor.value = name;
+    }
+
+    setIcons(icons){
+        this.icons = icons;
     }
 }
 

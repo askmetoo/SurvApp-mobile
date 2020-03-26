@@ -71,7 +71,7 @@
     border-radius: 50%;
     border: 1px dashed gray;
     background-color: rgba(76, 0, 130, 0.061);
-    
+    /* z-index: -50; */
 }
 
 .map_object_rotation_node_container{

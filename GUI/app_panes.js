@@ -1,4 +1,10 @@
 //types: materialize_floating_action_button
+class popupNote{
+    constructor(){
+        
+    }
+}
+
 class Tool{
     constructor(type, name, parentDOM, content, callback){ // clickFunction
         this.type = type;
@@ -20,6 +26,7 @@ class Tool{
         this.visible = false;
 
         this.callback = callback;
+        this.activeItem = null;
         
         // let appContainer = document.getElementsByClassName('app_container')[0];
         // appContainer.appendChild(toolContent);
@@ -142,7 +149,9 @@ class Tool{
             elem.addEventListener('pointerup', ev => {
                 let clickedData = this.subcontent[elem.id];
                 this.changeMainButtonImage(clickedData.data.iconSrc, clickedData.data.iconOrigin == 'materialize' ? true:false)
+                this.activeItem = clickedData;
                 this.callback(this.name, elem.id)
+
             })
         }
     }
