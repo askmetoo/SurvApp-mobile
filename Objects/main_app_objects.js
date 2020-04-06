@@ -9,6 +9,8 @@ function application(){
     this.customEvents = {};
 
     this.appLogs = [];
+
+    this.isIOS = false;
 }
 
 application.prototype.addUser = function(user){
@@ -107,42 +109,6 @@ application.prototype.processTool = function(toolName, itemClicked){
 
 
 
-
-function user(fName, lName, email, phoneNumber = '773-767-5400', permissions) {
-    this.fName = fName;
-    this.lName = lName;
-    this.fullName = fName + ' ' + lName;
-    this.ID = fName + lName[0];
-    this.email = email;
-    this.phoneNumber = phoneNumber;
-    this.permissions = permissions;
-    this.imageSrc = "";
-    this.initials = (this.fName.charAt(0) + this.lName.charAt(0)).toUpperCase();
-}
-
-user.prototype.setPermissions = function(permissions){
-    this.permissions = permissions;
-}
-
-function userPermissions(masterUser){
-    this.masterUser = masterUser;
-    if(masterUser){
-        this.designPlanEdit = true;
-        this.saveAsPdf = true;
-        this.viewPrices = true;
-        this.viewObjectsMenu = true;
-    } else {
-        this.designPlanEdit = false;
-        this.saveAsPdf = false;
-        this.viewPrices = false;
-        this.viewObjectsMenu = false;
-    }
-    
-}
-
-user.prototype.setPermission = function(permission, value){
-    this.permissions[permission] = value;
-}
 
 
 function project(name, createdBy, cretedDate = formatDateTime(new Date())){

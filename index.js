@@ -1,6 +1,39 @@
 // remember to set installationChecklists at the beginning of the app - probably read from the main spreadsheet
+//tests******************************
+
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.materialboxed');
+    var instances = M.Materialbox.init(elems, '');
+  });
+
+  let enhancedImagesInstance = new enhancedImages().enhancedImagesInit();
+
+
+  let backdrop = document.getElementById('main_backdrop');
+  backdrop.classList.add('backdrop_visible')
+  let backdropRect = backdrop.getBoundingClientRect()
+  let canvasTest = new Canvas(backdrop, null);
+  canvasTest.render();
+  canvasTest.setPosition(parseInt(backdropRect.x),parseInt(backdropRect.y));
+  canvasTest.setDimensions(parseInt(backdropRect.width),parseInt(backdropRect.height));
+  canvasTest.setListeners();
+  let canvasToolBar = new CanvasToolBar(canvasTest)
+  canvasToolBar.render()
+  canvasToolBar.setListeners();
+  canvasTest.addCanvasDrawingToolBar(canvasToolBar);
+  canvasToolBar.addStandardCanvasTools();
+
+//888888888888888888888888888888888888
+
 try{
+
+
     var app = new application();
+
+    //testing if iOS
+    let isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+
+    app.isIOS = isIOS;
 
     let userInstance = new user('Marcin', 'Heniborg', 'marcin@skynet4.com', '773-290-0091', new userPermissions(true));
     app.addUser(userInstance);

@@ -9,6 +9,35 @@ html,body {
     touch-action: manipulation;
 }
 
+.backdrop_visible{
+    /* display:block !important; */
+    top:0 !important;
+    background-color: rgba(37, 37, 37, 0.76) !important;
+}
+
+#main_backdrop{
+    /* display: none; */
+    position:absolute;
+    left: 0;
+    top: -120%;
+    height: 100%;
+    width:100%;
+    
+    background-color: rgba(255, 255, 255, 0);
+    transition: all 300ms ease;
+    z-index: 1000;
+}
+
+.backdrop_removed{
+    display:none;
+}
+
+.backdrop_inserted{
+    display:block;
+}
+
+
+
 .app_container{
     position: fixed;
     width:100%;

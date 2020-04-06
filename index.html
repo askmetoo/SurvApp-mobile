@@ -13,9 +13,12 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="GUI/app_menus.css">
+    <!-- <link rel="stylesheet" href="GUI/enhancedImage.css"> -->
     <link rel="stylesheet" href="Objects/map_elements.css">
+    <link rel="stylesheet" href="Objects/canvas.css">
     <link rel="stylesheet" href="GUI/app_panes.css">
     <link rel="stylesheet" href="GUI/app_tools.css">
+    <link rel="stylesheet" href="/Third Party/nouislider.css">
     <!-- Materialize Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -25,6 +28,9 @@
 </head>
 
 <body>
+  <div id='main_backdrop'>
+
+  </div>
   <div class="app_message" id="app_message">
     <span>app message</span>
     <span id="app__message_close_button">&times;</span>
@@ -38,7 +44,7 @@
         <table class="responsive-table">
           <tbody>
             <tr>
-              <td><img src="Images/skynet3.jpg"></td>
+              <td><img class="enhanced_image" src="Images/skynet3.jpg"></td>
               <td><img src="/Images/skynet1.jpg"></td>
               <td><img src="/Images/skynet1.jpg"></td>
               <td><img src="/Images/skynet1.jpg"></td>
@@ -67,37 +73,7 @@
       </div>
     </div>
 
-    <div class="card horizontal">
-      <div class="card-image">
-        <table class="responsive-table">
-          <tbody>
-            <tr>
-              <td><img src="/Images/skynet1.jpg"></td>
-              <td>Eclair</td>
-              
-            </tr>
-            <tr>
-              <td><img src="/Images/skynet1.jpg"></td>
-              <td>Jellybean</td>
-              
-            </tr>
-            
-          </tbody>
-        </table>
-        
-      </div>
-      
-      <div class="card-stacked">
-        <div class="card-content">
-          <p>I am a very simple card. I am good at containing small bits of information.</p>
-        </div>
-        <div class="card-action">
-          <a href="#">This is a link</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
+    
   <!-- based on materialize floating action button -->
   <template id="materialize_template_tool"> 
     <div class='fixed-action-btn app_tool'>
@@ -163,16 +139,26 @@
         </div>
     </div>    
 </body>
+<style></style>
 <!--Meterialize Compiled and minified JavaScript -->
 <script type="text/javascript" src="Objects/appMessageAndLog.js"></script>
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> -->
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.js"></script>
-          
+<script type="text/javascript" src="Objects/canvas.js"></script>
+<script type="text/javascript" src="Objects/htmlHelper.js"></script>
+
+
 <script type="text/javascript" src="Third Party/firebase.js"></script>
-
+<script type="text/javascript" src="Third Party/jscolor.js"></script>
+<script type="text/javascript" src="Third Party/nouislider.js"></script>
+<script type="text/javascript" src="Objects/hammerTouch.js"></script>
 <script type="text/javascript" src="Utilities/tools.js"></script>
+<script type="text/javascript" src="Objects/user.js"></script>
 <script type="text/javascript" src="Objects/equipment.js"></script>
-
+<script type="text/javascript" src="Objects/enhancedImage.js"></script>
 <script type="text/javascript" src="GUI/app_menus.js"></script>
 <script type="text/javascript" src="GUI/app_panes.js"></script>
 <script type="text/javascript" src="Objects/main_app_objects.js"></script>

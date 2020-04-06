@@ -1,0 +1,191 @@
+
+
+.image_full_screen{
+    position: absolute;
+    top: 30% !important;
+    left: 0 !important;
+    right: 0;
+    width:95% !important;
+    margin: auto !important;
+    height: auto !important;
+    margin: 0 2.5% !important;
+    /* transition: all 0.5s; */
+}
+
+.canvas_container{
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    width:100% ;
+    /* margin: auto ; */
+    height: 100%;
+    /* margin: 0 2.5% ; */
+    z-index:1001;
+    /* transition: all 0.5s; */
+
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+     user-select: none;
+}
+
+.canvas_full_screen{
+    position: absolute;
+    left: 0;
+    top: 0;
+    /* width:100% ;
+    height: 100%; */
+    z-index:1001;
+}
+
+#enhanced_image_popup_close_button{
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    color: white;
+    font-size: x-large;
+    z-index: 1002;
+
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+     user-select: none;
+}
+
+.canvas_toolbar{
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:auto;
+    height: 47px;
+    background-color: gray;
+    color: white;
+    padding: 5px 5px;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.561);
+    z-index: 1002;
+}
+
+.canvas_tool_container{
+    /* opacity: 0; */
+    padding: 0 10px;
+    background-color: rgb(173, 173, 173);
+}
+
+.canvas_tool_container.jscolor{
+    /* opacity:0; */
+    position: relative;
+    visibility:visible;
+    width:30px;
+    height: 30px;
+    margin: 3px 5px;
+    top: 0;
+    vertical-align: top;
+    line-height: 50%;
+
+    /* hide text */
+    text-indent: 320%;
+    white-space: nowrap;
+    overflow: hidden;
+    border-radius: 50%;
+    border: 2px solid white;
+
+}
+
+.canvas_tool_container.jscolor:before{
+	content: '';
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 70%;
+	background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0));
+}
+
+
+/* .canvas_tool_container:hover{
+    color: rgb(24, 24, 24);
+} */
+
+.canvas_tool_selected{
+   color: rgb(255, 255, 255) !important;
+   background-color: rgb(53, 53, 53);
+}
+
+.canvas_text_input{
+    position:absolute;
+    display: inline-block;
+    /* background: transparent; */
+    border: 1px solid black;
+    /* top:50px;
+    left: 10px; */
+    width: 5em;
+    height: 5em;
+    z-index: 1003;
+}
+
+.tool_submenu_container{
+    position: absolute;
+    bottom: -80px;
+    left: 10px;
+    height: 40px;
+    width: 200px;
+    background-color: gray;
+    z-index: 1003;
+    transition: bottom 300ms;
+}
+
+.tool_submenu_visible{
+    bottom: 60px;
+}
+
+.tool_submenu_container>select{
+    display: inline-block;
+    position: relative;
+    height: 38px;
+    top: 1px;
+    margin:0 1px;
+  
+}
+
+
+.text_size_select{
+    width: 52px;
+
+   
+}
+
+.text_font_select{
+    width: 102px;
+}
+
+.text_weight_select{
+    display: inline-block;
+
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgb(182, 182, 182);
+    margin: 0 1px;
+    margin-bottom: 2px;
+    margin-top:0;
+    background-color: rgb(172, 172, 172);
+    /* margin: 4px; */
+
+}
+
+.text_weight_select>i{
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    padding: 4px 3px;
+    text-align: center;
+    vertical-align: middle;
+   
+}
+
+.pencil_size_select{
+    position: absolute;
+    width: 200px;
+    top: 10px;
+}
+

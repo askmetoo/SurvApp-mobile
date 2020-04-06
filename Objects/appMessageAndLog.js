@@ -1,3 +1,52 @@
+
+class post{    
+    constructor(parentConversation, owner, note){
+        this.POST_STATUS = {
+            "new": "new", "uread":"unread", "read": "read", "deleted": "deleted"
+        }
+        this.owner = owner;
+        this.note = note;
+        this.enhancedImages = [];
+        this.status = POST_STATUS['unread'];
+        this.usersStatus = {};
+        this.parentConversation = parentConversation;
+    }
+
+    setUsersPostStauses(status){
+        for(let k in this.parentConversation.users){
+            let user = this.parentConversation.users[k];
+            this.setUserPostStatus(user, status);
+        }
+    }
+
+    setUserPostStatus(user, status){
+        this.usersStatus[user] = status;
+    }
+}
+
+
+// parent could be any of objects: project, design plan, mapObject
+class conversation{
+    constructor(parent, owner, subject, users){
+        this.ID = Math.random() * 1000000;
+        this.subject = subject;
+        this.dateStarted = new Date();
+        this.parent = parent;
+        this.parent.conversations.push(this);
+        this.owner = owner;
+        this.users = users;
+        this.posts = [];
+    }
+
+    addUser(user){
+        this.users[user.ID] = user;
+    }
+
+    addPost(post){
+        this.posts.push(post);
+    }
+}
+
 class appLogMessage{
     constructor(location, message, type){
         this.location = location;

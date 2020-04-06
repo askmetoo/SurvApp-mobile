@@ -1,5 +1,12 @@
 //document.getElementById("app_message").innerHTML = 'tools.js loaded';
 
+let MAX_RANDOM_VALUE = 10000000;
+
+// this is here in case I needed to replace Math.random with something better - gives me a centralized control of this functionality
+function randomNumber(max){
+    return parseInt(Math.random() * max)
+}
+
 function insertTestPoint(DOM,x,y,color){
     let point = document.createElement('div')
     point.classList.add('test_point');
@@ -8,6 +15,18 @@ function insertTestPoint(DOM,x,y,color){
     color == 'undefined' ? 'red' : color;
     point.style.backgroundColor = color;
     DOM.appendChild(point)
+}
+
+function initTextAreaAutoResize(textarea){
+    // var tx = document.getElementsByTagName('textarea');
+    // for (var i = 0; i < tx.length; i++) {
+    textarea.setAttribute('style', 'height:' + (textarea.scrollHeight) + 'px;overflow-y:hidden;');
+    textarea.addEventListener("input", OnInput, false);
+
+    function OnInput() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+    }
 }
 
 function isObject(obj){
