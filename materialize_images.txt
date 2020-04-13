@@ -1,0 +1,8 @@
+
+square - check_box_outline_blank
+circle - panorama_fish_eye
+contunuous line - show_chart
+arrow - trending_flat
+
+sal
+peter 7082291599
